@@ -1,0 +1,129 @@
+{
+  "total": 53000,
+  "formats": [
+    {
+      "name": "CSV",
+      "count": 22854
+    },
+    {
+      "name": "JSON;CSV",
+      "count": 3697
+    },
+    {
+      "name": "JSON",
+      "count": 2355
+    },
+    {
+      "name": "CSV;XML;JSON",
+      "count": 1685
+    },
+    {
+      "name": "CSV;JSON;XML",
+      "count": 1580
+    },
+    {
+      "name": "XLSX;CSV;XML;JSON",
+      "count": 1568
+    },
+    {
+      "name": "XML",
+      "count": 1389
+    },
+    {
+      "name": "ZIP",
+      "count": 1346
+    },
+    {
+      "name": "CSV;JSON",
+      "count": 1046
+    },
+    {
+      "name": "ZIP;ZIP;ZIP;ZIP;ZIP;ZIP;ZIP;ZIP;ZIP;ZIP;ZIP;ZIP",
+      "count": 1022
+    }
+  ],
+  "agencies": [
+    {
+      "name": "行政院主計總處",
+      "count": 1952
+    },
+    {
+      "name": "農業部",
+      "count": 1710
+    },
+    {
+      "name": "新北市政府地政局",
+      "count": 1001
+    },
+    {
+      "name": "法務部矯正署",
+      "count": 954
+    },
+    {
+      "name": "財政部財政資訊中心",
+      "count": 891
+    },
+    {
+      "name": "花蓮縣地方稅務局",
+      "count": 794
+    },
+    {
+      "name": "宜蘭縣政府",
+      "count": 773
+    },
+    {
+      "name": "新北市政府主計處",
+      "count": 747
+    },
+    {
+      "name": "臺北市政府主計處",
+      "count": 714
+    },
+    {
+      "name": "金融監督管理委員會證券期貨局",
+      "count": 701
+    }
+  ],
+  "categories": [
+    {
+      "name": "公共資訊",
+      "count": 30402
+    },
+    {
+      "name": "生活安全及品質",
+      "count": 4682
+    },
+    {
+      "name": "購屋及遷徙",
+      "count": 3997
+    },
+    {
+      "name": "交通及通訊",
+      "count": 3530
+    },
+    {
+      "name": "投資理財",
+      "count": 1679
+    },
+    {
+      "name": "休閒旅遊",
+      "count": 1507
+    },
+    {
+      "name": "就醫",
+      "count": 1481
+    },
+    {
+      "name": "開創事業",
+      "count": 1364
+    },
+    {
+      "name": "求學及進修",
+      "count": 1224
+    },
+    {
+      "name": "求職及就業",
+      "count": 969
+    }
+  ]
+}

@@ -195,77 +195,88 @@ function showTopic(topic) {
 
 // Fetch and load high-level statistics & init charts
 async function loadStats() {
+  let stats;
   try {
     const res = await fetch('/api/stats');
-    const stats = await res.json();
-    
-    // Set total count
-    els.statTotal.textContent = Number(stats.total).toLocaleString();
-    
-    // Populate Agency filter with Top 10 agencies
-    els.filterAgency.innerHTML = '<option value="">全部機關</option>' + 
-      stats.agencies.map(a => `<option value="${a.name}">${a.name} (${a.count})</option>`).join('');
-    
-    // Draw Formats Bar Chart
-    const formatCtx = document.getElementById('formatChart').getContext('2d');
-    state.charts.format = new Chart(formatCtx, {
-      type: 'bar',
-      data: {
-        labels: stats.formats.map(f => f.name),
-        datasets: [{
-          label: '資料集數量',
-          data: stats.formats.map(f => f.count),
-          backgroundColor: 'rgba(6, 182, 212, 0.45)',
-          borderColor: '#06b6d4',
-          borderWidth: 1.5,
-          borderRadius: 6
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false }
-        },
-        scales: {
-          x: { grid: { display: false }, ticks: { color: '#9ca3af' } },
-          y: { grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#9ca3af' } }
-        }
-      }
-    });
-
-    // Draw Categories Doughnut Chart
-    const categoryCtx = document.getElementById('categoryChart').getContext('2d');
-    state.charts.category = new Chart(categoryCtx, {
-      type: 'doughnut',
-      data: {
-        labels: stats.categories.map(c => c.name),
-        datasets: [{
-          data: stats.categories.map(c => c.count),
-          backgroundColor: [
-            '#06b6d4', '#8b5cf6', '#3b82f6', '#10b981', '#f59e0b',
-            '#ec4899', '#f43f5e', '#14b8a6', '#6366f1', '#a855f7'
-          ],
-          borderWidth: 0,
-          hoverOffset: 12
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { 
-            position: 'right',
-            labels: { color: '#9ca3af', font: { size: 11 } }
-          }
-        }
-      }
-    });
-
+    if (!res.ok) throw new Error('API server unreachable');
+    stats = await res.json();
   } catch (err) {
-    console.error('Failed to load stats:', err);
+    console.log('API stats endpoint unavailable, trying static fallback stats.json...', err);
+    try {
+      const res = await fetch('data/stats.json');
+      stats = await res.json();
+    } catch (fallbackErr) {
+      console.error('Failed to load static fallback stats:', fallbackErr);
+      return;
+    }
   }
+
+  // Set total count
+  els.statTotal.textContent = Number(stats.total).toLocaleString();
+  
+  // Populate Agency filter with Top 10 agencies
+  els.filterAgency.innerHTML = '<option value="">全部機關</option>' + 
+    stats.agencies.map(a => `<option value="${a.name}">${a.name} (${a.count})</option>`).join('');
+  
+  // Draw Formats Bar Chart
+  const formatCtx = document.getElementById('formatChart').getContext('2d');
+  state.charts.format = new Chart(formatCtx, {
+    type: 'bar',
+    data: {
+      labels: stats.formats.map(f => f.name),
+      datasets: [{
+        label: '資料集數量',
+        data: stats.formats.map(f => f.count),
+        backgroundColor: 'rgba(6, 182, 212, 0.45)',
+        borderColor: '#06b6d4',
+        borderWidth: 1.5,
+        borderRadius: 6
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false }
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: '#9ca3af' } },
+        y: { grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#9ca3af' } }
+      }
+    }
+  });
+
+  // Draw Categories Doughnut Chart
+  const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+  state.charts.category = new Chart(categoryCtx, {
+    type: 'doughnut',
+    data: {
+      labels: stats.categories.map(c => c.name),
+      datasets: [{
+        data: stats.categories.map(c => c.count),
+        backgroundColor: [
+          '#06b6d4', '#8b5cf6', '#3b82f6', '#10b981', '#f59e0b',
+          '#ec4899', '#f43f5e', '#14b8a6', '#6366f1', '#a855f7'
+        ],
+        borderWidth: 0,
+        hoverOffset: 12
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { 
+          position: 'right',
+          labels: { color: '#9ca3af', font: { size: 11 } }
+        }
+      }
+    }
+  });
 }
+
+// Global cache for featured datasets in preview mode
+let featuredDatasetsCache = null;
 
 // Perform advanced search & populate cards
 async function performSearch(page = 1) {
@@ -283,53 +294,95 @@ async function performSearch(page = 1) {
 
   const url = `/api/search?q=${encodeURIComponent(q)}&format=${encodeURIComponent(format)}&category=${encodeURIComponent(category)}&agency=${encodeURIComponent(agency)}&page=${page}&limit=${state.limit}`;
 
+  let data;
   try {
     const res = await fetch(url);
-    const data = await res.json();
-    
-    els.loadingSpinner.style.display = 'none';
-    els.resultsTotalNum.textContent = Number(data.total).toLocaleString();
+    if (!res.ok) throw new Error('API server unreachable');
+    data = await res.json();
+  } catch (err) {
+    console.log('API search endpoint unavailable, trying static fallback featured_datasets.json...');
+    try {
+      if (!featuredDatasetsCache) {
+        const res = await fetch('data/featured_datasets.json');
+        featuredDatasetsCache = await res.json();
+      }
+      
+      let results = featuredDatasetsCache;
+      
+      // Filter client-side
+      if (q) {
+        results = results.filter(item => 
+          (item.名稱 && item.名稱.toLowerCase().includes(q.toLowerCase())) || 
+          (item.描述 && item.描述.toLowerCase().includes(q.toLowerCase())) ||
+          (item.主要欄位 && item.主要欄位.toLowerCase().includes(q.toLowerCase()))
+        );
+      }
+      if (format) {
+        results = results.filter(item => item.檔案格式 && item.檔案格式.toLowerCase().includes(format.toLowerCase()));
+      }
+      if (category) {
+        results = results.filter(item => item.服務分類 === category);
+      }
+      if (agency) {
+        results = results.filter(item => item.提供機關 === agency);
+      }
 
-    if (data.results.length === 0) {
-      els.datasetsContainer.innerHTML += `
-        <div class="loading-spinner-container" style="grid-column: 1 / -1;">
-          <i class="fa-solid fa-folder-open" style="font-size: 3rem; color: var(--text-muted);"></i>
-          <span>沒有找到符合條件的資料集，建議更換搜尋條件或關鍵字。</span>
-        </div>
-      `;
-      els.pagination.innerHTML = '';
+      const total = results.length;
+      const offset = (page - 1) * state.limit;
+      const paginatedResults = results.slice(offset, offset + state.limit);
+
+      data = {
+        total,
+        page,
+        limit: state.limit,
+        pages: Math.ceil(total / state.limit),
+        results: paginatedResults
+      };
+    } catch (fallbackErr) {
+      els.loadingSpinner.style.display = 'none';
+      console.error('Failed to load static fallback search results:', fallbackErr);
       return;
     }
-
-    // Render dataset card grids
-    data.results.forEach(item => {
-      const descText = item.描述 ? item.描述 : '此資料集尚未提供詮釋資料描述。';
-      const sizeText = item.資料量 ? `資料量：${item.資料量}` : '公開資料';
-      
-      const card = document.createElement('div');
-      card.className = 'dataset-card glass-card';
-      card.innerHTML = `
-        <div class="card-tags">
-          <span class="badge-format">${item.檔案格式 || '未知'}</span>
-          <span class="badge-category">${item.服務分類 || '未分類'}</span>
-        </div>
-        <h3 class="card-title">${item.名稱}</h3>
-        <p class="card-desc">${descText}</p>
-        <div class="card-footer">
-          <span class="card-agency"><i class="fa-solid fa-landmark"></i> ${item.提供機關}</span>
-          <span><i class="fa-solid fa-box"></i> ${sizeText}</span>
-        </div>
-      `;
-      card.addEventListener('click', () => openDatasetDetails(item.id));
-      els.datasetsContainer.appendChild(card);
-    });
-
-    renderPagination(data.page, data.pages);
-
-  } catch (err) {
-    els.loadingSpinner.style.display = 'none';
-    console.error('Search error:', err);
   }
+
+  els.loadingSpinner.style.display = 'none';
+  els.resultsTotalNum.textContent = Number(data.total).toLocaleString();
+
+  if (data.results.length === 0) {
+    els.datasetsContainer.innerHTML += `
+      <div class="loading-spinner-container" style="grid-column: 1 / -1;">
+        <i class="fa-solid fa-folder-open" style="font-size: 3rem; color: var(--text-muted);"></i>
+        <span>沒有找到符合條件的資料集，建議更換搜尋條件或關鍵字。</span>
+      </div>
+    `;
+    els.pagination.innerHTML = '';
+    return;
+  }
+
+  // Render dataset card grids
+  data.results.forEach(item => {
+    const descText = item.描述 ? item.描述 : '此資料集尚未提供詮釋資料描述。';
+    const sizeText = item.資料量 ? `資料量：${item.資料量}` : '公開資料';
+    
+    const card = document.createElement('div');
+    card.className = 'dataset-card glass-card';
+    card.innerHTML = `
+      <div class="card-tags">
+        <span class="badge-format">${item.檔案格式 || '未知'}</span>
+        <span class="badge-category">${item.服務分類 || '未分類'}</span>
+      </div>
+      <h3 class="card-title">${item.名稱}</h3>
+      <p class="card-desc">${descText}</p>
+      <div class="card-footer">
+        <span class="card-agency"><i class="fa-solid fa-landmark"></i> ${item.提供機關}</span>
+        <span><i class="fa-solid fa-box"></i> ${sizeText}</span>
+      </div>
+    `;
+    card.addEventListener('click', () => openDatasetDetails(item.id, item));
+    els.datasetsContainer.appendChild(card);
+  });
+
+  renderPagination(data.page, data.pages);
 }
 
 // Draw Pagination Page Button elements
@@ -369,7 +422,7 @@ function renderPagination(current, total) {
 }
 
 // Open modal and load detail metadata
-async function openDatasetDetails(id) {
+async function openDatasetDetails(id, fallbackItem = null) {
   els.modalBackdrop.classList.add('open');
   
   // Set default loading state
@@ -377,45 +430,56 @@ async function openDatasetDetails(id) {
   els.modalDesc.textContent = '正在高速讀取詳細詮釋資料...';
   els.modalFields.innerHTML = '';
   
+  let item;
   try {
     const res = await fetch(`/api/dataset/${id}`);
-    const item = await res.json();
-    
-    els.modalTitle.textContent = item.名稱;
-    els.modalFormat.textContent = item.檔案格式 || '未知';
-    els.modalCategory.textContent = item.服務分類 || '公共資訊';
-    els.modalAgency.textContent = item.提供機關 || '中華民國政府';
-    els.modalFrequency.textContent = item.更新頻率 || '無定期';
-    els.modalDesc.textContent = item.描述 || '此政府開放資料集暫無詳細文字描述。';
-    
-    // Parse fields and make interactive tags
-    if (item.主要欄位) {
-      const fields = item.主要欄位.split(/[;；,，#\s]+/);
-      els.modalFields.innerHTML = fields.filter(f => f.trim()).map(f => `<span class="column-tag">${f.trim()}</span>`).join('');
-    } else {
-      els.modalFields.innerHTML = '<span class="column-tag">暫無欄位說明</span>';
-    }
-
-    els.modalProp.textContent = item.提供屬性 || '原始資料';
-    els.modalEncoding.textContent = item.編碼格式 || 'UTF-8';
-    els.modalQuality.textContent = item.品質檢測 || '無分類';
-    els.modalDate.textContent = item.上架日期 ? item.上架日期.split(' ')[0] : '2016-11-30';
-    els.modalUpdate.textContent = item.更新時間 || '暫無更新紀錄';
-    
-    const contactInfo = [item.聯絡人姓名, item.聯絡人電話].filter(c => c).join(' / ');
-    els.modalContact.textContent = contactInfo || '政府開放資料推動小組';
-
-    if (item.下載網址) {
-      els.modalDownloadBtn.href = item.下載網址;
-      els.modalDownloadBtn.style.display = 'inline-flex';
-    } else {
-      els.modalDownloadBtn.style.display = 'none';
-    }
-
+    if (!res.ok) throw new Error('API server unreachable');
+    item = await res.json();
   } catch (err) {
-    console.error('Failed to load dataset details:', err);
-    els.modalTitle.textContent = '讀取失敗';
-    els.modalDesc.textContent = '系統讀取此資料集細節時發生異常錯誤，請稍後再試。';
+    console.log('API details endpoint unavailable, using cached item...');
+    if (fallbackItem) {
+      item = fallbackItem;
+    } else if (featuredDatasetsCache) {
+      item = featuredDatasetsCache.find(d => d.id == id);
+    }
+    
+    if (!item) {
+      console.error('Failed to load dataset details:', err);
+      els.modalTitle.textContent = '讀取失敗';
+      els.modalDesc.textContent = '系統讀取此資料集細節時發生異常錯誤，請稍後再試。';
+      return;
+    }
+  }
+  
+  els.modalTitle.textContent = item.名稱;
+  els.modalFormat.textContent = item.檔案格式 || '未知';
+  els.modalCategory.textContent = item.服務分類 || '公共資訊';
+  els.modalAgency.textContent = item.提供機關 || '中華民國政府';
+  els.modalFrequency.textContent = item.更新頻率 || '無定期';
+  els.modalDesc.textContent = item.描述 || '此政府開放資料集暫無詳細文字描述。';
+  
+  // Parse fields and make interactive tags
+  if (item.主要欄位) {
+    const fields = item.主要欄位.split(/[;；,，#\s]+/);
+    els.modalFields.innerHTML = fields.filter(f => f.trim()).map(f => `<span class="column-tag">${f.trim()}</span>`).join('');
+  } else {
+    els.modalFields.innerHTML = '<span class="column-tag">暫無欄位說明</span>';
+  }
+
+  els.modalProp.textContent = item.提供屬性 || '原始資料';
+  els.modalEncoding.textContent = item.編碼格式 || 'UTF-8';
+  els.modalQuality.textContent = item.品質檢測 || '無分類';
+  els.modalDate.textContent = item.上架日期 ? item.上架日期.split(' ')[0] : '2016-11-30';
+  els.modalUpdate.textContent = item.更新時間 || '暫無更新紀錄';
+  
+  const contactInfo = [item.聯絡人姓名, item.聯絡人電話].filter(c => c).join(' / ');
+  els.modalContact.textContent = contactInfo || '政府開放資料推動小組';
+
+  if (item.下載網址) {
+    els.modalDownloadBtn.href = item.下載網址;
+    els.modalDownloadBtn.style.display = 'inline-flex';
+  } else {
+    els.modalDownloadBtn.style.display = 'none';
   }
 }
 
@@ -431,7 +495,7 @@ async function sendChatMessage() {
   // Render User Message bubble
   appendChatBubble(query, 'user');
   els.chatInput.value = '';
-  
+
   // Render typing bubble placeholder
   const typingBubble = appendChatBubble('<i class="fa-solid fa-ellipsis fa-bounce"></i> 正在檢索 53k 資料庫並編寫推薦...', 'system-typing');
 
