@@ -508,7 +508,7 @@ async function loadTopicEnv() {
   if (state.charts.envAqi && state.charts.envWeather) return; // Prevent double draw
 
   try {
-    const res = await fetch('/data/env_stats.json');
+    const res = await fetch('data/env_stats.json');
     const data = await res.json();
 
     // 1. Air Quality (AQI) bar chart
@@ -619,7 +619,7 @@ async function loadTopicAging() {
   if (state.charts.agingRank && state.charts.agingTrend) return; // Prevent double draw
 
   try {
-    const res = await fetch('/data/aging_stats.json');
+    const res = await fetch('data/aging_stats.json');
     const data = await res.json();
 
     // 1. Aging Index ranking chart
@@ -710,7 +710,7 @@ async function loadTopicAging() {
 async function loadTopicTourism() {
   // Populate table and draw crowd seasonality chart
   try {
-    const res = await fetch('/data/tourism_stats.json');
+    const res = await fetch('data/tourism_stats.json');
     const data = await res.json();
 
     // 1. Populate TOP 10 Spot Table
