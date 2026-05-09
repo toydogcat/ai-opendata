@@ -84,6 +84,44 @@
           </div>
         </div>
 
+        <!-- Live Public Utilities Monitors -->
+        <h2 class="section-subtitle" style="margin-top: 30px; margin-bottom: 15px;"><i class="fa-solid fa-tower-broadcast text-accent-cyan" style="margin-right: 8px;"></i> 即時民生指標監控艙</h2>
+        <div class="live-monitors-container">
+          <!-- Reservoirs Monitor Card -->
+          <div class="chart-box glass-card monitor-card">
+            <div class="monitor-header">
+              <h3><i class="fa-solid fa-water text-accent-cyan"></i> 全台主要水庫即時蓄水率</h3>
+              <span class="live-badge"><span class="pulse-dot"></span> 實時監測</span>
+            </div>
+            <div id="reservoir-list" class="reservoir-list">
+              <!-- Dynamically populated -->
+              <div class="loading-placeholder">載入中...</div>
+            </div>
+          </div>
+
+          <!-- Taipower Green Energy Monitor Card -->
+          <div class="chart-box glass-card monitor-card">
+            <div class="monitor-header">
+              <h3><i class="fa-solid fa-bolt text-accent"></i> 台灣即時用電發電比例</h3>
+              <span class="live-badge-orange"><span class="pulse-dot-orange"></span> 實時更新</span>
+            </div>
+            <div class="power-monitor-content">
+              <div class="power-chart-wrapper">
+                <canvas id="powerRatioChart"></canvas>
+              </div>
+              <div class="power-stats">
+                <div class="power-stat-item">
+                  <span class="power-label">備轉容量率 (備用電力)</span>
+                  <span id="power-reserve-rate" class="power-value text-accent-green">11.2%</span>
+                </div>
+                <div id="power-source-legend" class="power-source-legend">
+                  <!-- Dynamically populated legend -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Charts Distributions Container -->
         <div class="charts-container">
           <div class="chart-box glass-card">

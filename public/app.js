@@ -297,6 +297,94 @@ async function loadStats() {
       }
     }
   });
+
+  // Call the new Live Public Utilities Monitors loader
+  loadLiveMonitors();
+}
+
+// Load and render Live Public Utilities Monitors (Reservoirs & Taipower)
+async function loadLiveMonitors() {
+  try {
+    const res = await fetch('data/live_stats.json');
+    const data = await res.json();
+
+    // 1. Populate Reservoir List
+    const reservoirList = document.getElementById('reservoir-list');
+    if (reservoirList) {
+      reservoirList.innerHTML = data.reservoirs.map(r => {
+        let barColor = '#10b981'; // Good (>70%)
+        let shadowColor = 'rgba(16, 185, 129, 0.4)';
+        if (r.percentage < 40) {
+          barColor = '#ef4444'; // Eating / Critical (<40%)
+          shadowColor = 'rgba(239, 68, 68, 0.4)';
+        } else if (r.percentage < 70) {
+          barColor = '#f59e0b'; // Normal / Middle (40% - 70%)
+          shadowColor = 'rgba(245, 158, 11, 0.4)';
+        }
+
+        return `
+          <div class="reservoir-item">
+            <div class="reservoir-meta">
+              <span class="reservoir-name">${r.name}<span class="reservoir-desc">(${r.location} | 容量: ${r.capacity} 萬噸)</span></span>
+              <span class="reservoir-pct" style="color: ${barColor}">${r.percentage}%</span>
+            </div>
+            <div class="reservoir-bar-bg">
+              <div class="reservoir-bar-fill" style="width: ${r.percentage}%; background-color: ${barColor}; --bar-shadow: ${shadowColor};"></div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // 2. Render Taipower Power Generation Ratio Doughnut Chart
+    const powerCtx = document.getElementById('powerRatioChart').getContext('2d');
+    const reserveRateEl = document.getElementById('power-reserve-rate');
+    if (reserveRateEl) {
+      reserveRateEl.textContent = `${data.power_generation.reserve_rate}%`;
+      if (data.power_generation.reserve_rate < 10) {
+        reserveRateEl.className = 'power-value text-accent-orange';
+      } else {
+        reserveRateEl.className = 'power-value text-accent-green';
+      }
+    }
+
+    state.charts.powerRatio = new Chart(powerCtx, {
+      type: 'doughnut',
+      data: {
+        labels: data.power_generation.sources.map(s => s.name),
+        datasets: [{
+          data: data.power_generation.sources.map(s => s.value),
+          backgroundColor: data.power_generation.sources.map(s => s.color),
+          borderWidth: 0,
+          hoverOffset: 8
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false }
+        }
+      }
+    });
+
+    // Populate Legend
+    const legendContainer = document.getElementById('power-source-legend');
+    if (legendContainer) {
+      legendContainer.innerHTML = data.power_generation.sources.map(s => `
+        <div class="legend-item">
+          <div class="legend-label-group">
+            <span class="legend-dot" style="background-color: ${s.color}"></span>
+            <span>${s.name.split(' ')[0]}</span>
+          </div>
+          <span class="legend-val">${s.value}%</span>
+        </div>
+      `).join('');
+    }
+
+  } catch (err) {
+    console.error('Failed to load live monitors stats:', err);
+  }
 }
 
 // Global cache for featured datasets in preview mode
