@@ -1006,6 +1006,26 @@ body {
   margin-top: auto;
 }
 
+.busuanzi-stats {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin-top: 10px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.busuanzi-stats .stat-count {
+  color: var(--accent-cyan);
+  font-weight: 600;
+  text-shadow: 0 0 10px rgba(6, 182, 212, 0.3);
+}
+
+.busuanzi-stats .stat-separator {
+  color: rgba(255, 255, 255, 0.1);
+}
+
 /* Topics Section Specific Styles */
 .topic-selector-tabs {
   display: flex;

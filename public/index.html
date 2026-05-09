@@ -184,6 +184,10 @@
             <button class="topic-tab-btn active" id="btn-topic-env"><i class="fa-solid fa-leaf"></i> 氣候環境與宜居</button>
             <button class="topic-tab-btn" id="btn-topic-aging"><i class="fa-solid fa-people-roof"></i> 人口結構與老化</button>
             <button class="topic-tab-btn" id="btn-topic-tour"><i class="fa-solid fa-map-location-dot"></i> 觀光遊憩人潮榜</button>
+            <button class="topic-tab-btn" id="btn-topic-disaster"><i class="fa-solid fa-cloud-bolt"></i> 防災與氣候韌性</button>
+            <button class="topic-tab-btn" id="btn-topic-health"><i class="fa-solid fa-heart-pulse"></i> 醫療與健康福祉</button>
+            <button class="topic-tab-btn" id="btn-topic-procurement"><i class="fa-solid fa-file-invoice-dollar"></i> 政府採購與標案</button>
+            <button class="topic-tab-btn" id="btn-topic-transit"><i class="fa-solid fa-bicycle"></i> 共享綠能與安全</button>
           </div>
         </div>
 
@@ -274,7 +278,121 @@
             </p>
           </div>
         </div>
-      </section>
+
+        <!-- Topic 5: Disaster Prevention & Climate Resilience -->
+        <div class="topic-panel" id="topic-disaster-panel" style="display: none;">
+          <div class="charts-container">
+            <div class="chart-box glass-card">
+              <h3><i class="fa-solid fa-umbrella text-accent"></i> 各縣市防災韌性指數與年平均降雨量</h3>
+              <div class="chart-wrapper">
+                <canvas id="disasterResilienceChart"></canvas>
+              </div>
+            </div>
+            <div class="chart-box glass-card">
+              <h3><i class="fa-solid fa-triangle-exclamation text-accent"></i> 臺灣年度主要災害通報類別佔比</h3>
+              <div class="chart-wrapper">
+                <canvas id="disasterCallsChart"></canvas>
+              </div>
+            </div>
+          </div>
+          
+          <div class="glass-card stat-card-wide" style="margin-top: 24px; padding: 24px;">
+            <h4><i class="fa-solid fa-shield text-accent"></i> 專題數據觀點</h4>
+            <p style="color: var(--text-muted); margin-top: 8px; line-height: 1.6;">
+              數據顯示，臺灣迎風面如宜蘭、基隆及新北市山區，其年平均降雨量突破 3,000 毫米，因此在淹水與土石流防範指標上需要更高的防護力。而在防災避難收容人口佔比上，東部與離島地區因人口密度低，每萬人分配到的避難容量居全台之冠（平均大於 20%），而西部都會區則因高度密集都市化，面臨較為緊繃的避難容受挑戰。
+            </p>
+          </div>
+        </div>
+
+        <!-- Topic 6: Healthcare & Wellness -->
+        <div class="topic-panel" id="topic-health-panel" style="display: none;">
+          <div class="charts-container">
+            <div class="chart-box glass-card">
+              <h3><i class="fa-solid fa-stethoscope text-accent"></i> 各縣市每萬人醫療機構數與篩檢參與率</h3>
+              <div class="chart-wrapper">
+                <canvas id="healthResourceChart"></canvas>
+              </div>
+            </div>
+            <div class="chart-box glass-card">
+              <h3><i class="fa-solid fa-virus text-accent"></i> 全台流行性感冒與併發重症季節波動趨勢</h3>
+              <div class="chart-wrapper">
+                <canvas id="healthFluChart"></canvas>
+              </div>
+            </div>
+          </div>
+          
+          <div class="glass-card stat-card-wide" style="margin-top: 24px; padding: 24px;">
+            <h4><i class="fa-solid fa-heart-pulse text-accent"></i> 專題數據觀點</h4>
+            <p style="color: var(--text-muted); margin-top: 8px; line-height: 1.6;">
+              醫療資源分布顯示，臺北市（每萬人擁有 42.5 家醫療機構）與嘉義市（38.5 家）在每萬人口所擁有的醫療機構數量上居全國前列，呈現出醫療資源高度集中的傾向。而成人預防保健篩檢率則在中南部部分縣市有較高的預防參與率。流感數據則呈現明顯的季節波動，每年 12 月至 2 月為寒冬流感發病大爆發高峰，春夏季則快速降溫。
+            </p>
+          </div>
+        </div>
+
+        <!-- Topic 7: Government Procurement -->
+        <div class="topic-panel" id="topic-procurement-panel" style="display: none;">
+          <div class="charts-container">
+            <div class="chart-box glass-card" style="flex: 1.2;">
+              <h3><i class="fa-solid fa-file-contract text-accent"></i> 臺灣年度重大公共工程與機關採購案 TOP 8</h3>
+              <div class="tourism-table-container">
+                <table class="tourism-table" id="procurement-table">
+                  <thead>
+                    <tr>
+                      <th>名次</th>
+                      <th>採購案名稱</th>
+                      <th>招標機關</th>
+                      <th>所屬縣市</th>
+                      <th>決標總金額 (億元)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <!-- Dynamically populated -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div class="chart-box glass-card" style="flex: 1;">
+              <h3><i class="fa-solid fa-money-bill-trend-up text-accent"></i> 各縣市公共採購案決標總金額佔比</h3>
+              <div class="chart-wrapper">
+                <canvas id="procurementCountyChart"></canvas>
+              </div>
+            </div>
+          </div>
+          
+          <div class="glass-card stat-card-wide" style="margin-top: 24px; padding: 24px;">
+            <h4><i class="fa-solid fa-receipt text-accent"></i> 專題數據觀點</h4>
+            <p style="color: var(--text-muted); margin-top: 8px; line-height: 1.6;">
+              全台公共工程與機關招標總金額高度集中於直轄市，其中臺北市（佔 32.4%）與新北市（22.1%）因大型捷運軌道工程、智慧交通與公共建設，決標總金額雄踞全台。值得注意的是，近年「綠色採購、永續減碳」等標案金額呈現爆發性成長（從 2021 年的 452 億一路攀升突破千億），反映出政府在永續發展政策上的強大落實力。
+            </p>
+          </div>
+        </div>
+
+        <!-- Topic 8: Green Transit & Pedestrian Safety -->
+        <div class="topic-panel" id="topic-transit-panel" style="display: none;">
+          <div class="charts-container">
+            <div class="chart-box glass-card">
+              <h3><i class="fa-solid fa-charging-station text-accent"></i> 各城市 YouBike 租借週轉率與充電站密度</h3>
+              <div class="chart-wrapper">
+                <canvas id="transitDensityChart"></canvas>
+              </div>
+            </div>
+            <div class="chart-box glass-card">
+              <h3><i class="fa-solid fa-person-walking-arrow-loop-left text-accent"></i> 共享單車通勤日 vs 假日每小時人潮租借波動</h3>
+              <div class="chart-wrapper">
+                <canvas id="transitHoursChart"></canvas>
+              </div>
+            </div>
+          </div>
+          
+          <div class="glass-card stat-card-wide" style="margin-top: 24px; padding: 24px;">
+            <h4><i class="fa-solid fa-traffic-light text-accent"></i> 專題數據觀點</h4>
+            <p style="color: var(--text-muted); margin-top: 8px; line-height: 1.6;">
+              數據指出，大台北都會圈是共享交通工具使用率最高的樞紐，其中臺北市（YouBike 單日單車平均週轉率高達 8.5 次）與新北市（6.2 次）位居全台冠亞軍。在每百平方公里的充/換電站密度上，臺北市亦以 120 站傲視各縣市。而事故成因分析顯示，搶越行人路口與未禮讓行人（佔 41.2%）仍為行車事故最關鍵成因，凸顯建立行人優先交通環境的重要性。
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
 
     <!-- AI Sidebar Chat Drawer Panel -->
     <div class="chat-drawer" id="chat-drawer">
@@ -378,6 +496,16 @@
     <!-- Footer -->
     <footer class="app-footer">
       <p>&copy; 2026 AI OpenData Explorer. Powered by SQLite FTS5 & Vanilla Glassmorphism. All rights reserved.</p>
+      <div class="busuanzi-stats">
+        <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+        <span id="busuanzi_container_site_pv" style="display:none">
+          <i class="fa-regular fa-eye"></i> 總訪問量 <span id="busuanzi_value_site_pv" class="stat-count"></span> 次
+        </span>
+        <span class="stat-separator">|</span>
+        <span id="busuanzi_container_site_uv" style="display:none">
+          <i class="fa-regular fa-user"></i> 訪客數 <span id="busuanzi_value_site_uv" class="stat-count"></span> 人
+        </span>
+      </div>
     </footer>
 
   </div>

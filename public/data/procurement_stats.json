@@ -1,0 +1,90 @@
+{
+  "top_tenders": [
+    {
+      "name": "捷運萬大線機電工程",
+      "agency": "台北捷運局",
+      "county": "臺北市",
+      "amount_billion": 32.5
+    },
+    {
+      "name": "國道一號拓寬工程案",
+      "agency": "高公局",
+      "county": "新北市",
+      "amount_billion": 18.4
+    },
+    {
+      "name": "高雄港第七貨櫃建設案",
+      "agency": "臺灣港務公司",
+      "county": "高雄市",
+      "amount_billion": 24.5
+    },
+    {
+      "name": "桃園機場三航廈新建案",
+      "agency": "桃機公司",
+      "county": "桃園市",
+      "amount_billion": 28.1
+    },
+    {
+      "name": "臺中港風力發電基礎案",
+      "agency": "能源署",
+      "county": "臺中市",
+      "amount_billion": 12.8
+    },
+    {
+      "name": "新北市立美術館新建案",
+      "agency": "新北工務局",
+      "county": "新北市",
+      "amount_billion": 6.2
+    },
+    {
+      "name": "南迴鐵路雙軌工程案",
+      "agency": "鐵道局",
+      "county": "臺東縣",
+      "amount_billion": 14.2
+    },
+    {
+      "name": "安平港聯外道路新建案",
+      "agency": "台南工務局",
+      "county": "臺南市",
+      "amount_billion": 4.5
+    }
+  ],
+  "tenders_by_county": {
+    "labels": [
+      "臺北市",
+      "新北市",
+      "桃園市",
+      "臺中市",
+      "臺南市",
+      "高雄市",
+      "其餘縣市"
+    ],
+    "amounts_pct": [
+      32.4,
+      22.1,
+      12.5,
+      14.8,
+      7.2,
+      9.4,
+      1.6
+    ]
+  },
+  "green_procurement": {
+    "years": [
+      "2021",
+      "2022",
+      "2023",
+      "2024",
+      "2025",
+      "2026"
+    ],
+    "amount_billion": [
+      45.2,
+      52.8,
+      61.4,
+      72.5,
+      84.1,
+      95.8
+    ]
+  }
+}

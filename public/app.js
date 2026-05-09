@@ -42,9 +42,17 @@ const els = {
   btnTopicEnv: document.getElementById('btn-topic-env'),
   btnTopicAging: document.getElementById('btn-topic-aging'),
   btnTopicTour: document.getElementById('btn-topic-tour'),
+  btnTopicDisaster: document.getElementById('btn-topic-disaster'),
+  btnTopicHealth: document.getElementById('btn-topic-health'),
+  btnTopicProcurement: document.getElementById('btn-topic-procurement'),
+  btnTopicTransit: document.getElementById('btn-topic-transit'),
   panelEnv: document.getElementById('topic-env-panel'),
   panelAging: document.getElementById('topic-aging-panel'),
   panelTour: document.getElementById('topic-tour-panel'),
+  panelDisaster: document.getElementById('topic-disaster-panel'),
+  panelHealth: document.getElementById('topic-health-panel'),
+  panelProcurement: document.getElementById('topic-procurement-panel'),
+  panelTransit: document.getElementById('topic-transit-panel'),
   
   // Chat Drawer
   chatDrawer: document.getElementById('chat-drawer'),
@@ -108,6 +116,10 @@ function setupEventListeners() {
   els.btnTopicEnv.addEventListener('click', () => showTopic('env'));
   els.btnTopicAging.addEventListener('click', () => showTopic('aging'));
   els.btnTopicTour.addEventListener('click', () => showTopic('tour'));
+  els.btnTopicDisaster.addEventListener('click', () => showTopic('disaster'));
+  els.btnTopicHealth.addEventListener('click', () => showTopic('health'));
+  els.btnTopicProcurement.addEventListener('click', () => showTopic('procurement'));
+  els.btnTopicTransit.addEventListener('click', () => showTopic('transit'));
 
   // Search actions
   els.searchBtn.addEventListener('click', () => performSearch(1));
@@ -181,16 +193,28 @@ function showTopic(topic) {
   els.btnTopicEnv.classList.toggle('active', topic === 'env');
   els.btnTopicAging.classList.toggle('active', topic === 'aging');
   els.btnTopicTour.classList.toggle('active', topic === 'tour');
+  els.btnTopicDisaster.classList.toggle('active', topic === 'disaster');
+  els.btnTopicHealth.classList.toggle('active', topic === 'health');
+  els.btnTopicProcurement.classList.toggle('active', topic === 'procurement');
+  els.btnTopicTransit.classList.toggle('active', topic === 'transit');
   
   // Toggles active panels
   els.panelEnv.style.display = topic === 'env' ? 'flex' : 'none';
   els.panelAging.style.display = topic === 'aging' ? 'flex' : 'none';
   els.panelTour.style.display = topic === 'tour' ? 'flex' : 'none';
+  els.panelDisaster.style.display = topic === 'disaster' ? 'flex' : 'none';
+  els.panelHealth.style.display = topic === 'health' ? 'flex' : 'none';
+  els.panelProcurement.style.display = topic === 'procurement' ? 'flex' : 'none';
+  els.panelTransit.style.display = topic === 'transit' ? 'flex' : 'none';
   
   // Load respective topic charts
   if (topic === 'env') loadTopicEnv();
   else if (topic === 'aging') loadTopicAging();
   else if (topic === 'tour') loadTopicTourism();
+  else if (topic === 'disaster') loadTopicDisaster();
+  else if (topic === 'health') loadTopicHealth();
+  else if (topic === 'procurement') loadTopicProcurement();
+  else if (topic === 'transit') loadTopicTransit();
 }
 
 // Fetch and load high-level statistics & init charts
@@ -834,3 +858,339 @@ async function loadTopicTourism() {
     console.error('Failed to load Tourism topic data:', err);
   }
 }
+
+// Topic 5: Disaster Prevention & Climate Resilience Load
+async function loadTopicDisaster() {
+  if (state.charts.disasterResilience && state.charts.disasterCalls) return;
+
+  try {
+    const res = await fetch('data/disaster_stats.json');
+    const data = await res.json();
+
+    // 1. Resilience index & Annual rainfall mixed chart
+    const resCtx = document.getElementById('disasterResilienceChart').getContext('2d');
+    state.charts.disasterResilience = new Chart(resCtx, {
+      type: 'bar',
+      data: {
+        labels: data.cities,
+        datasets: [
+          {
+            label: '防災韌性指數',
+            data: data.resilience_index,
+            backgroundColor: 'rgba(6, 182, 212, 0.45)',
+            borderColor: '#06b6d4',
+            borderWidth: 1.5,
+            borderRadius: 4,
+            yAxisID: 'y'
+          },
+          {
+            label: '年平均降雨量 (mm)',
+            data: data.annual_rainfall,
+            type: 'line',
+            borderColor: '#f59e0b',
+            backgroundColor: 'transparent',
+            borderWidth: 2,
+            tension: 0.2,
+            yAxisID: 'yRain'
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { labels: { color: '#9ca3af' } }
+        },
+        scales: {
+          x: { grid: { display: false }, ticks: { color: '#9ca3af', font: { size: 10 } } },
+          y: { 
+            position: 'left',
+            grid: { color: 'rgba(255, 255, 255, 0.05)' }, 
+            ticks: { color: '#9ca3af' } 
+          },
+          yRain: {
+            position: 'right',
+            grid: { drawOnChartArea: false },
+            ticks: { color: '#f59e0b' }
+          }
+        }
+      }
+    });
+
+    // 2. Disaster calls doughnut chart
+    const callsCtx = document.getElementById('disasterCallsChart').getContext('2d');
+    state.charts.disasterCalls = new Chart(callsCtx, {
+      type: 'doughnut',
+      data: {
+        labels: data.disaster_calls.labels,
+        datasets: [{
+          data: data.disaster_calls.counts,
+          backgroundColor: [
+            'rgba(239, 68, 68, 0.65)',
+            'rgba(245, 158, 11, 0.65)',
+            'rgba(59, 130, 246, 0.65)',
+            'rgba(16, 185, 129, 0.65)',
+            'rgba(139, 92, 246, 0.65)',
+            'rgba(107, 114, 128, 0.65)'
+          ],
+          borderColor: 'rgba(255, 255, 255, 0.1)',
+          borderWidth: 1.5
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { 
+            position: 'right',
+            labels: { color: '#9ca3af', font: { size: 10 } } 
+          }
+        }
+      }
+    });
+
+  } catch (err) {
+    console.error('Failed to load Disaster topic data:', err);
+  }
+}
+
+// Topic 6: Healthcare & Wellness Load
+async function loadTopicHealth() {
+  if (state.charts.healthResource && state.charts.healthFlu) return;
+
+  try {
+    const res = await fetch('data/health_stats.json');
+    const data = await res.json();
+
+    // 1. Health resource & adult screening mixed chart
+    const resourceCtx = document.getElementById('healthResourceChart').getContext('2d');
+    state.charts.healthResource = new Chart(resourceCtx, {
+      type: 'bar',
+      data: {
+        labels: data.cities,
+        datasets: [
+          {
+            label: '每萬人醫療機構數',
+            data: data.medical_facilities_per_10k,
+            backgroundColor: 'rgba(16, 185, 129, 0.45)',
+            borderColor: '#10b981',
+            borderWidth: 1.5,
+            borderRadius: 4,
+            yAxisID: 'y'
+          },
+          {
+            label: '成人預防保健篩檢率 (%)',
+            data: data.adult_health_screening_rate,
+            type: 'line',
+            borderColor: '#ec4899',
+            backgroundColor: 'transparent',
+            borderWidth: 2,
+            tension: 0.2,
+            yAxisID: 'yScreen'
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { labels: { color: '#9ca3af' } }
+        },
+        scales: {
+          x: { grid: { display: false }, ticks: { color: '#9ca3af', font: { size: 10 } } },
+          y: { 
+            position: 'left',
+            grid: { color: 'rgba(255, 255, 255, 0.05)' }, 
+            ticks: { color: '#9ca3af' } 
+          },
+          yScreen: {
+            position: 'right',
+            grid: { drawOnChartArea: false },
+            ticks: { color: '#ec4899' }
+          }
+        }
+      }
+    });
+
+    // 2. Flu seasonality line chart
+    const fluCtx = document.getElementById('healthFluChart').getContext('2d');
+    state.charts.healthFlu = new Chart(fluCtx, {
+      type: 'line',
+      data: {
+        labels: data.flu_seasonality.labels,
+        datasets: [{
+          label: '流感併發重症及看診人數',
+          data: data.flu_seasonality.cases,
+          borderColor: '#ef4444',
+          backgroundColor: 'rgba(239, 68, 68, 0.1)',
+          fill: true,
+          borderWidth: 2.5,
+          tension: 0.35
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { labels: { color: '#9ca3af' } }
+        },
+        scales: {
+          x: { grid: { display: false }, ticks: { color: '#9ca3af' } },
+          y: { grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#9ca3af' } }
+        }
+      }
+    });
+
+  } catch (err) {
+    console.error('Failed to load Health topic data:', err);
+  }
+}
+
+// Topic 7: Government Procurement Load
+async function loadTopicProcurement() {
+  try {
+    const res = await fetch('data/procurement_stats.json');
+    const data = await res.json();
+
+    // 1. Populate Major Tenders Table
+    const tbody = document.querySelector('#procurement-table tbody');
+    if (tbody.children.length === 0) {
+      tbody.innerHTML = data.top_tenders.map((tender, idx) => `
+        <tr>
+          <td><span class="rank-num">#${idx + 1}</span></td>
+          <td style="font-weight: 700; color: white;">${tender.name}</td>
+          <td>${tender.agency}</td>
+          <td><i class="fa-solid fa-map-pin" style="color: var(--accent-cyan); margin-right: 4px;"></i> ${tender.county}</td>
+          <td style="font-family: var(--font-title); font-weight: 700; color: var(--accent-cyan);">${tender.amount_billion.toFixed(1)} <span>億元</span></td>
+        </tr>
+      `).join('');
+    }
+
+    // 2. County tenders breakdown doughnut chart
+    if (state.charts.procurementCounty) return;
+    const countyCtx = document.getElementById('procurementCountyChart').getContext('2d');
+    state.charts.procurementCounty = new Chart(countyCtx, {
+      type: 'doughnut',
+      data: {
+        labels: data.tenders_by_county.labels,
+        datasets: [{
+          data: data.tenders_by_county.amounts_pct,
+          backgroundColor: [
+            'rgba(6, 182, 212, 0.6)',
+            'rgba(139, 92, 246, 0.6)',
+            'rgba(245, 158, 11, 0.6)',
+            'rgba(16, 185, 129, 0.6)',
+            'rgba(236, 48, 120, 0.6)',
+            'rgba(59, 130, 246, 0.6)',
+            'rgba(107, 114, 128, 0.6)'
+          ],
+          borderColor: 'rgba(255, 255, 255, 0.08)',
+          borderWidth: 1.5
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { 
+            position: 'right',
+            labels: { color: '#9ca3af', font: { size: 10 } } 
+          }
+        }
+      }
+    });
+
+  } catch (err) {
+    console.error('Failed to load Procurement topic data:', err);
+  }
+}
+
+// Topic 8: Green Transit & Pedestrian Safety Load
+async function loadTopicTransit() {
+  if (state.charts.transitDensity && state.charts.transitHours) return;
+
+  try {
+    const res = await fetch('data/transit_stats.json');
+    const data = await res.json();
+
+    // 1. YouBike turnover & charging station density grouped bar chart
+    const densityCtx = document.getElementById('transitDensityChart').getContext('2d');
+    state.charts.transitDensity = new Chart(densityCtx, {
+      type: 'bar',
+      data: {
+        labels: data.cities,
+        datasets: [
+          {
+            label: 'YouBike 單車平均周轉率 (次/日)',
+            data: data.bike_turnover_rate,
+            backgroundColor: 'rgba(245, 158, 11, 0.5)',
+            borderColor: '#f59e0b',
+            borderWidth: 1.5,
+            borderRadius: 4
+          },
+          {
+            label: '每百平方公里充電站密度 (站)',
+            data: data.charging_stations_density,
+            backgroundColor: 'rgba(6, 182, 212, 0.5)',
+            borderColor: '#06b6d4',
+            borderWidth: 1.5,
+            borderRadius: 4
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { labels: { color: '#9ca3af', font: { size: 10 } } }
+        },
+        scales: {
+          x: { grid: { display: false }, ticks: { color: '#9ca3af' } },
+          y: { grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#9ca3af' } }
+        }
+      }
+    });
+
+    // 2. Bike rental hourly comparison line chart
+    const hoursCtx = document.getElementById('transitHoursChart').getContext('2d');
+    state.charts.transitHours = new Chart(hoursCtx, {
+      type: 'line',
+      data: {
+        labels: data.hourly_bike_rentals.labels,
+        datasets: [
+          {
+            label: '通勤日租借趨勢 (次/小時)',
+            data: data.hourly_bike_rentals.commute_days,
+            borderColor: '#ef4444',
+            backgroundColor: 'transparent',
+            borderWidth: 2.5,
+            tension: 0.3
+          },
+          {
+            label: '週末假日租借趨勢 (次/小時)',
+            data: data.hourly_bike_rentals.holidays,
+            borderColor: '#10b981',
+            backgroundColor: 'transparent',
+            borderWidth: 2.5,
+            tension: 0.3
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { labels: { color: '#9ca3af' } }
+        },
+        scales: {
+          x: { grid: { display: false }, ticks: { color: '#9ca3af' } },
+          y: { grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#9ca3af' } }
+        }
+      }
+    });
+
+  } catch (err) {
+    console.error('Failed to load Transit topic data:', err);
+  }
+}
+
