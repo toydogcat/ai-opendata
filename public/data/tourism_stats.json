@@ -1,0 +1,108 @@
+{
+  "top_spots": [
+    {
+      "name": "台北 101 觀景台",
+      "county": "臺北市",
+      "category": "都會觀光",
+      "visitors_annual": 3250000
+    },
+    {
+      "name": "國立故宮博物院",
+      "county": "臺北市",
+      "category": "歷史藝文",
+      "visitors_annual": 2800000
+    },
+    {
+      "name": "日月潭國家風景區",
+      "county": "南投縣",
+      "category": "國家風景區",
+      "visitors_annual": 4500000
+    },
+    {
+      "name": "阿里山國家森林遊樂區",
+      "county": "嘉義縣",
+      "category": "國家森林",
+      "visitors_annual": 2100000
+    },
+    {
+      "name": "墾丁國家公園",
+      "county": "屏東縣",
+      "category": "國家風景區",
+      "visitors_annual": 3800000
+    },
+    {
+      "name": "太魯閣國家公園",
+      "county": "花蓮縣",
+      "category": "國家風景區",
+      "visitors_annual": 3400000
+    },
+    {
+      "name": "淡水金色水岸",
+      "county": "新北市",
+      "category": "老街海景",
+      "visitors_annual": 5200000
+    },
+    {
+      "name": "九份老街",
+      "county": "新北市",
+      "category": "老街懷舊",
+      "visitors_annual": 2900000
+    },
+    {
+      "name": "高雄駁二藝術特區",
+      "county": "高雄市",
+      "category": "都會觀光",
+      "visitors_annual": 4100000
+    },
+    {
+      "name": "奇美博物館",
+      "county": "臺南市",
+      "category": "歷史藝文",
+      "visitors_annual": 1800000
+    }
+  ],
+  "seasonality": {
+    "labels": [
+      "一月",
+      "二月",
+      "三月",
+      "四月",
+      "五月",
+      "六月",
+      "七月",
+      "八月",
+      "九月",
+      "十月",
+      "十一月",
+      "十二月"
+    ],
+    "urban_spots": [
+      180,
+      250,
+      160,
+      190,
+      140,
+      150,
+      220,
+      240,
+      170,
+      210,
+      190,
+      230
+    ],
+    "nature_spots": [
+      120,
+      180,
+      220,
+      260,
+      210,
+      280,
+      350,
+      380,
+      240,
+      220,
+      160,
+      140
+    ]
+  }
+}

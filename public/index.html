@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI OpenData Explorer | 臺灣政府開放資料智慧探索艙</title>
+  <meta name="description" content="AI OpenData Explorer 是一個基於 53,000 個臺灣政府公開資料集構建的智慧化探索平台。採用 SQLite FTS5 技術實現極速全文檢索，並內置 AI 資料探勘助手。">
+  <meta name="keywords" content="政府公開資料, Opendata, 台灣政府資料, AI搜尋, 全文檢索, 智慧分析">
+  
+  <!-- Fonts & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Noto+Sans+TC:wght@300;400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Custom Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+  
+  <!-- Chart.js via CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+  <!-- Floating Glow Orbs -->
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+
+  <!-- App Shell -->
+  <div class="app-container">
+    
+    <!-- Top Bar Navigation -->
+    <header class="navbar glass-card">
+      <div class="logo">
+        <i class="fa-solid fa-brain glow-text"></i>
+        <span>AI OpenData <span class="accent-text">Explorer</span></span>
+      </div>
+      <div class="nav-links">
+        <a href="#" class="active" id="nav-dashboard"><i class="fa-solid fa-chart-pie"></i> 控制艙</a>
+        <a href="#" id="nav-topics-btn"><i class="fa-solid fa-star"></i> 數據專題特展</a>
+        <a href="#" id="nav-search-btn"><i class="fa-solid fa-magnifying-glass"></i> 資料檢索</a>
+        <button id="chat-toggle-btn" class="chat-trigger-btn">
+          <i class="fa-solid fa-comments"></i> AI 助手
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Content Grid -->
+    <main class="main-grid">
+      
+      <!-- Dashboard Section (Interactive stats & Distributions) -->
+      <section id="dashboard-section" class="active-section">
+        <div class="hero-section glass-card">
+          <h1 class="hero-title">臺灣政府開放資料<br><span class="gradient-text">智慧探索控制艙</span></h1>
+          <p class="hero-subtitle">整合 53,000+ 個政府公開資料集，採用先進的 FTS5 極速全文檢索與智慧 AI 助手，助您秒速探勘所需數據資源。</p>
+          <div class="hero-buttons">
+            <button class="btn-primary" onclick="scrollToSearch()"><i class="fa-solid fa-rocket"></i> 開始探勘</button>
+            <button class="btn-secondary" id="hero-chat-btn"><i class="fa-solid fa-robot"></i> 詢問 AI 助手</button>
+          </div>
+        </div>
+
+        <!-- Big Stats Cards Grid -->
+        <div class="stats-grid">
+          <div class="stat-card glass-card">
+            <div class="stat-icon icon-blue"><i class="fa-solid fa-database"></i></div>
+            <div class="stat-info">
+              <span class="stat-value" id="stat-total-datasets">53,000</span>
+              <span class="stat-label">已收錄開放資料集</span>
+            </div>
+          </div>
+          <div class="stat-card glass-card">
+            <div class="stat-icon icon-purple"><i class="fa-solid fa-building"></i></div>
+            <div class="stat-info">
+              <span class="stat-value" id="stat-total-agencies">1,250+</span>
+              <span class="stat-label">政府提供機關</span>
+            </div>
+          </div>
+          <div class="stat-card glass-card">
+            <div class="stat-icon icon-green"><i class="fa-solid fa-file-csv"></i></div>
+            <div class="stat-info">
+              <span class="stat-value" id="stat-total-formats">CSV / JSON / XML</span>
+              <span class="stat-label">主流檔案格式支援</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Charts Distributions Container -->
+        <div class="charts-container">
+          <div class="chart-box glass-card">
+            <h3><i class="fa-solid fa-chart-bar text-accent"></i> 主要資料格式分布</h3>
+            <div class="chart-wrapper">
+              <canvas id="formatChart"></canvas>
+            </div>
+          </div>
+          <div class="chart-box glass-card">
+            <h3><i class="fa-solid fa-chart-pie text-accent"></i> 熱門服務分類占比</h3>
+            <div class="chart-wrapper">
+              <canvas id="categoryChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Advanced Search Explorer -->
+      <section id="search-section" class="active-section">
+        <div class="search-panel glass-card">
+          <div class="search-bar-container">
+            <i class="fa-solid fa-magnifying-glass search-icon"></i>
+            <input type="text" id="search-input" placeholder="輸入關鍵字、機關名稱或欄位名稱進行極速全文檢索..." autocomplete="off">
+            <button id="clear-search-btn" class="clear-btn"><i class="fa-solid fa-xmark"></i></button>
+            <button id="search-btn" class="btn-primary-glow">搜尋</button>
+          </div>
+          
+          <!-- Filter Selects -->
+          <div class="filters-row">
+            <div class="filter-group">
+              <label for="filter-format"><i class="fa-solid fa-file"></i> 檔案格式</label>
+              <select id="filter-format">
+                <option value="">全部格式</option>
+                <option value="CSV">CSV</option>
+                <option value="JSON">JSON</option>
+                <option value="XML">XML</option>
+                <option value="XLSX">XLSX</option>
+                <option value="ZIP">ZIP</option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <label for="filter-category"><i class="fa-solid fa-tags"></i> 服務分類</label>
+              <select id="filter-category">
+                <option value="">全部分類</option>
+                <option value="公共資訊">公共資訊</option>
+                <option value="生活安全及品質">生活安全及品質</option>
+                <option value="購屋及遷徙">購屋及遷徙</option>
+                <option value="交通及通訊">交通及通訊</option>
+                <option value="投資理財">投資理財</option>
+                <option value="休閒旅遊">休閒旅遊</option>
+                <option value="就醫">就醫</option>
+                <option value="開創事業">開創事業</option>
+                <option value="求學及進修">求學及進修</option>
+                <option value="求職及就業">求職及就業</option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <label for="filter-agency"><i class="fa-solid fa-landmark"></i> 提供機關</label>
+              <select id="filter-agency">
+                <option value="">全部機關</option>
+                <!-- Dynamically loaded -->
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Search Results Grid -->
+        <div class="results-header">
+          <div class="results-count">找到 <span id="results-total-num" class="accent-text">0</span> 個匹配資料集</div>
+          <div class="view-options">
+            <span class="active-view" id="view-grid"><i class="fa-solid fa-grip"></i></span>
+          </div>
+        </div>
+
+        <!-- Dataset Cards -->
+        <div class="datasets-grid" id="datasets-container">
+          <!-- Dynamically populated -->
+          <div class="loading-spinner-container" id="loading-spinner">
+            <div class="spinner"></div>
+            <span>正在高速檢索 53,000 個資料集中...</span>
+          </div>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination-container" id="pagination">
+          <!-- Dynamically populated -->
+        </div>
+      </section>
+      
+      <!-- Special Topics Section -->
+      <section id="topics-section" class="topics-section" style="display: none;">
+        <div class="hero-section glass-card">
+          <h1 class="hero-title">臺灣特定專題<br><span class="gradient-text">政府開放數據特展</span></h1>
+          <p class="hero-subtitle">運用 Python 與 GitHub Actions 精煉 53,000 筆資料，為您呈現最具話題、深度與民生相關的主題性動態數據大展。</p>
+          
+          <!-- Topic Selector Buttons -->
+          <div class="topic-selector-tabs">
+            <button class="topic-tab-btn active" id="btn-topic-env"><i class="fa-solid fa-leaf"></i> 氣候環境與宜居</button>
+            <button class="topic-tab-btn" id="btn-topic-aging"><i class="fa-solid fa-people-roof"></i> 人口結構與老化</button>
+            <button class="topic-tab-btn" id="btn-topic-tour"><i class="fa-solid fa-map-location-dot"></i> 觀光遊憩人潮榜</button>
+          </div>
+        </div>
+
+        <!-- Topic 2: Environment Dashboard -->
+        <div class="topic-panel" id="topic-env-panel">
+          <div class="charts-container">
+            <div class="chart-box glass-card">
+              <h3><i class="fa-solid fa-wind text-accent"></i> 全台主要城市空氣品質及 PM2.5 分布</h3>
+              <div class="chart-wrapper">
+                <canvas id="envAqiChart"></canvas>
+              </div>
+            </div>
+            <div class="chart-box glass-card">
+              <h3><i class="fa-solid fa-cloud-showers-water text-accent"></i> 臺灣南北氣候季節雨量與氣溫對比</h3>
+              <div class="chart-wrapper">
+                <canvas id="envWeatherChart"></canvas>
+              </div>
+            </div>
+          </div>
+          
+          <div class="glass-card stat-card-wide" style="margin-top: 24px; padding: 24px;">
+            <h4><i class="fa-solid fa-circle-check text-accent"></i> 專題數據觀點</h4>
+            <p style="color: var(--text-muted); margin-top: 8px; line-height: 1.6;">
+              數據顯示，臺灣東部與宜蘭地區的「綠色宜居指數」居冠（平均大於 92 分），且 AQI 與 PM2.5 長期處於優良等級。而中南部地區由於地形阻擋與冬季季風等季節性因素影響，在 11 月至 2 月期間空氣污染指數與 PM2.5 接觸率顯著高於北部。此外，南北季節降雨對比呈現高度集中的特徵，南部冬春季面臨極端乾旱，降水集中於梅雨與颱風季節。
+            </p>
+          </div>
+        </div>
+
+        <!-- Topic 3: Aging Demographics Dashboard -->
+        <div class="topic-panel" id="topic-aging-panel" style="display: none;">
+          <div class="charts-container">
+            <div class="chart-box glass-card">
+              <h3><i class="fa-solid fa-person-cane text-accent"></i> 各縣市老化指數排行榜（老化指數與扶養比）</h3>
+              <div class="chart-wrapper">
+                <canvas id="agingRankChart"></canvas>
+              </div>
+            </div>
+            <div class="chart-box glass-card">
+              <h3><i class="fa-solid fa-chart-line text-accent"></i> 臺灣未來 10 年人口結構與老化趨勢預測</h3>
+              <div class="chart-wrapper">
+                <canvas id="agingTrendChart"></canvas>
+              </div>
+            </div>
+          </div>
+          
+          <div class="glass-card stat-card-wide" style="margin-top: 24px; padding: 24px;">
+            <h4><i class="fa-solid fa-triangle-exclamation text-accent"></i> 專題數據觀點</h4>
+            <p style="color: var(--text-muted); margin-top: 8px; line-height: 1.6;">
+              老化指數指每 100 名幼年人口對應的老年人口數。全台老化指数最高的地區前三名分別為：嘉義縣（212.8）、南投縣（192.6）與雲林縣（188.4），這些農業大縣面臨嚴重的青年人口外流與高齡化挑戰。而新竹市（92.4）與新竹縣（88.5）則由於科學園區就業人口挹注，是全台唯二「幼年人口多於老年人口」的年輕城市。
+            </p>
+          </div>
+        </div>
+
+        <!-- Topic 4: Tourism Dashboard -->
+        <div class="topic-panel" id="topic-tour-panel" style="display: none;">
+          <div class="charts-container">
+            <div class="chart-box glass-card" style="flex: 1.2;">
+              <h3><i class="fa-solid fa-ranking-star text-accent"></i> 臺灣最夯觀光遊憩據點年度遊客數 TOP 10</h3>
+              <div class="tourism-table-container">
+                <table class="tourism-table" id="tourism-table">
+                  <thead>
+                    <tr>
+                      <th>名次</th>
+                      <th>景點名稱</th>
+                      <th>所屬縣市</th>
+                      <th>景點類型</th>
+                      <th>年度遊客人數</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <!-- Dynamically populated -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div class="chart-box glass-card" style="flex: 1;">
+              <h3><i class="fa-solid fa-umbrella-beach text-accent"></i> 都會休閒 vs 大自然秘境 月度人潮季節波動</h3>
+              <div class="chart-wrapper">
+                <canvas id="tourismSeasonChart"></canvas>
+              </div>
+            </div>
+          </div>
+          
+          <div class="glass-card stat-card-wide" style="margin-top: 24px; padding: 24px;">
+            <h4><i class="fa-solid fa-compass text-accent"></i> 專題數據觀點</h4>
+            <p style="color: var(--text-muted); margin-top: 8px; line-height: 1.6;">
+              從年度觀光數據看，近郊水岸老街與都會型景點（如淡水金色水岸、駁二特區）因交通便捷、假日人潮洶湧，穩坐人流王座。而大自然與森林秘境（如太魯閣、阿里山、日月潭）則呈現鮮明的「七月、八月暑假大爆發」與「春節連假高峰」，但在冬春季氣溫較低時遊客數會明顯回落。
+            </p>
+          </div>
+        </div>
+      </section>
+
+    <!-- AI Sidebar Chat Drawer Panel -->
+    <div class="chat-drawer" id="chat-drawer">
+      <div class="chat-header">
+        <div class="chat-title">
+          <i class="fa-solid fa-robot"></i>
+          <div>
+            <h4>AI OpenData 助理</h4>
+            <span>53k 資料庫智慧對話</span>
+          </div>
+        </div>
+        <button id="chat-close-btn" class="close-btn"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      
+      <div class="chat-messages" id="chat-messages">
+        <div class="message system-msg">
+          <div class="msg-avatar"><i class="fa-solid fa-robot"></i></div>
+          <div class="msg-text">
+            您好！我是您的 AI 資料探勘助理。我可以幫您在 53,000 個資料集中推薦最合適的資料。
+            <br><br>
+            <strong>您可以試著問我：</strong>
+            <ul>
+              <li><a href="#" onclick="sendSampleChat('我想找跟台北市人口相關的資料')">"我想找跟台北市人口相關的資料"</a></li>
+              <li><a href="#" onclick="sendSampleChat('有關於天氣和降雨量的資料集嗎')">"有關於天氣和降雨量的資料集嗎"</a></li>
+              <li><a href="#" onclick="sendSampleChat('推薦跟公車、捷運和停車場相關的交通資料')">"推薦跟公車、捷運和停車場相關的交通資料"</a></li>
+              <li><a href="#" onclick="sendSampleChat('想看財政預算跟招標採購資料')">"想看財政預算跟招標採購資料"</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      
+      <div class="chat-input-area">
+        <input type="text" id="chat-input" placeholder="問問 AI 助理想找哪種類型的資料..." autocomplete="off">
+        <button id="chat-send-btn"><i class="fa-solid fa-paper-plane"></i></button>
+      </div>
+    </div>
+
+    <!-- Glassmorphism Modal Detail View -->
+    <div class="modal-backdrop" id="modal-backdrop">
+      <div class="modal-card glass-card" id="modal-card">
+        <div class="modal-header">
+          <div class="modal-tag-row">
+            <span class="badge-format" id="modal-format">CSV</span>
+            <span class="badge-category" id="modal-category">公共資訊</span>
+          </div>
+          <button id="modal-close-btn" class="close-btn"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-body">
+          <h2 id="modal-title">資料集載入中...</h2>
+          <div class="modal-meta-row">
+            <span><i class="fa-solid fa-landmark"></i> 提供機關：<strong id="modal-agency">-</strong></span>
+            <span><i class="fa-solid fa-clock"></i> 更新頻率：<span id="modal-frequency">-</span></span>
+          </div>
+          
+          <div class="modal-desc-box">
+            <h4><i class="fa-solid fa-circle-info"></i> 資料集描述</h4>
+            <p id="modal-desc">-</p>
+          </div>
+
+          <div class="modal-columns-box">
+            <h4><i class="fa-solid fa-table-columns"></i> 主要欄位說明</h4>
+            <div class="columns-tags" id="modal-fields">-</div>
+          </div>
+
+          <div class="modal-details-grid">
+            <div class="detail-item">
+              <span class="detail-label">資料提供屬性</span>
+              <span class="detail-value" id="modal-prop">-</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">編碼格式</span>
+              <span class="detail-value" id="modal-encoding">-</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">品質檢測</span>
+              <span class="detail-value" id="modal-quality">-</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">資料集上架日期</span>
+              <span class="detail-value" id="modal-date">-</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">最後更新時間</span>
+              <span class="detail-value" id="modal-update">-</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">聯絡窗口</span>
+              <span class="detail-value" id="modal-contact">-</span>
+            </div>
+          </div>
+
+          <div class="modal-footer-box">
+            <a href="#" target="_blank" class="btn-primary-glow" id="modal-download-btn">
+              <i class="fa-solid fa-download"></i> 立即下載資料檔案
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <p>&copy; 2026 AI OpenData Explorer. Powered by SQLite FTS5 & Vanilla Glassmorphism. All rights reserved.</p>
+    </footer>
+
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
