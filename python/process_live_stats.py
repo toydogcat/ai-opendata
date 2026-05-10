@@ -6,6 +6,20 @@ from datetime import datetime
 def main():
     print("=== Fetching Real-Time Taiwan Public Utilities Data ===")
     
+    # 0. Load Existing History from Live URL (to maintain state in stateless CI run)
+    history = []
+    try:
+        print("Connecting to production to retrieve latest historical telemetry...")
+        # REPLACE WITH YOUR GITHUB PAGES BASE URL
+        LIVE_URL = "https://toydogcat.github.io/ai-opendata/data/live_stats.json"
+        hist_r = requests.get(LIVE_URL, timeout=5)
+        if hist_r.status_code == 200:
+            old_data = hist_r.json()
+            history = old_data.get("history", [])
+            print(f"Successfully retrieved {len(history)} prior history records.")
+    except Exception as e:
+        print(f"Proceeding with clean slate. Notice: {e}")
+
     # 1. Fetch WRA Reservoir Station Metadata
     reservoirs_data = []
     try:
@@ -280,13 +294,25 @@ def main():
             {"city": "臺中市", "condition": "晴天", "temp_range": "25° - 30°C", "max_temp": 30}
         ]
 
+    # 6. Log History (Append current snapshot and cap at 12 records ~36hrs)
+    current_time_str = datetime.now().strftime("%H:%M")
+    new_snap = {
+        "timestamp": current_time_str,
+        "reserve_rate": power_generation.get("reserve_rate", 10.0),
+        "youbike_utilization": youbike_stats.get("utilization_rate", 0.0)
+    }
+    history.append(new_snap)
+    if len(history) > 12:
+        history = history[-12:] # Keep last 12 steps
+    
     # 3. Combine and write to file
     final_output = {
         "reservoirs": reservoirs_data,
         "power_generation": power_generation,
         "air_quality": air_quality,
         "youbike": youbike_stats,
-        "weather_forecast": weather_forecast
+        "weather_forecast": weather_forecast,
+        "history": history
     }
     
     # Dynamically locate output dir relative to this script file

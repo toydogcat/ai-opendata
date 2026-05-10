@@ -508,6 +508,69 @@ async function loadLiveMonitors() {
       }).join('');
     }
 
+    // --- G. 24H HISTORICAL TIME-SERIES CHART ---
+    const ctxHist = document.getElementById('historyChart');
+    if (ctxHist && data.history && data.history.length > 0) {
+      const existingChart = Chart.getChart(ctxHist);
+      if (existingChart) existingChart.destroy();
+
+      const labels = data.history.map(h => h.timestamp);
+      const powerData = data.history.map(h => h.reserve_rate);
+      const bikeData = data.history.map(h => h.youbike_utilization);
+
+      new Chart(ctxHist, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: '電力備轉容量率 (%)',
+              data: powerData,
+              borderColor: '#38bdf8',
+              backgroundColor: 'rgba(56, 189, 248, 0.1)',
+              borderWidth: 3,
+              pointRadius: 4,
+              tension: 0.4,
+              fill: true,
+              yAxisID: 'y'
+            },
+            {
+              label: 'YouBike 總週轉率 (%)',
+              data: bikeData,
+              borderColor: '#f59e0b',
+              backgroundColor: 'rgba(245, 158, 11, 0.1)',
+              borderWidth: 3,
+              pointRadius: 4,
+              tension: 0.4,
+              fill: false,
+              borderDash: [5, 5],
+              yAxisID: 'y'
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { labels: { color: 'rgba(255,255,255,0.7)', usePointStyle: true } },
+            tooltip: { mode: 'index', intersect: false }
+          },
+          scales: {
+            x: { grid: { display: false }, ticks: { color: 'rgba(255,255,255,0.5)' } },
+            y: {
+              type: 'linear',
+              display: true,
+              position: 'left',
+              title: { display: true, text: '比例 (%)', color: 'rgba(255,255,255,0.5)' },
+              grid: { color: 'rgba(255,255,255,0.05)' },
+              ticks: { color: 'rgba(255,255,255,0.5)' },
+              suggestedMax: 60
+            }
+          }
+        }
+      });
+    }
+
   } catch (err) {
     console.error('Failed to load live monitors stats:', err);
   }

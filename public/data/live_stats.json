@@ -37,22 +37,22 @@
     }
   ],
   "power_generation": {
-    "update_time": "2026-05-10T15:50:00",
+    "update_time": "2026-05-10T16:20:00",
     "reserve_rate": 7.8,
     "sources": [
       {
         "name": "綠色能源 (風/光/水)",
-        "value": 23.8,
+        "value": 21.9,
         "color": "#10b981"
       },
       {
         "name": "乾淨燃氣",
-        "value": 46.7,
+        "value": 47.6,
         "color": "#06b6d4"
       },
       {
         "name": "常規燃煤",
-        "value": 29.5,
+        "value": 30.5,
         "color": "#f59e0b"
       },
       {
@@ -63,108 +63,70 @@
     ]
   },
   "air_quality": {
-    "update_time": "16:03",
+    "update_time": "--",
     "top_regions": [
       {
-        "name": "基隆市",
-        "value": 34.0,
-        "status": "優良"
-      },
-      {
-        "name": "臺北市",
-        "value": 36.3,
-        "status": "優良"
-      },
-      {
-        "name": "新竹縣",
-        "value": 37.5,
-        "status": "優良"
-      },
-      {
-        "name": "苗栗縣",
-        "value": 38.3,
+        "name": "花蓮縣",
+        "value": 22,
         "status": "優良"
       },
       {
         "name": "臺東縣",
-        "value": 38.5,
-        "status": "優良"
-      },
-      {
-        "name": "新竹市",
-        "value": 39.0,
-        "status": "優良"
-      },
-      {
-        "name": "宜蘭縣",
-        "value": 39.5,
-        "status": "優良"
-      },
-      {
-        "name": "花蓮縣",
-        "value": 40.0,
+        "value": 24,
         "status": "優良"
       }
     ]
   },
   "youbike": {
-    "total_available_bikes": 19368,
-    "total_empty_slots": 29684,
+    "total_available_bikes": 19003,
+    "total_empty_slots": 30069,
     "active_stations": 1758,
     "top_areas": [
       {
         "name": "大安區",
-        "value": 3097
+        "value": 2934
       },
       {
         "name": "信義區",
-        "value": 2070
+        "value": 2021
       },
       {
         "name": "內湖區",
-        "value": 1971
+        "value": 2003
       },
       {
         "name": "中正區",
-        "value": 1779
+        "value": 1777
       },
       {
         "name": "中山區",
-        "value": 1733
+        "value": 1706
       }
     ],
-    "utilization_rate": 39.5
+    "utilization_rate": 38.7
   },
   "weather_forecast": [
     {
-      "city": "新北市",
-      "condition": "多雲時陰短暫陣雨",
-      "temp_range": "25° - 28°C",
-      "max_temp": 28
-    },
-    {
       "city": "臺北市",
-      "condition": "陰天",
-      "temp_range": "25° - 28°C",
+      "condition": "多雲",
+      "temp_range": "24° - 28°C",
       "max_temp": 28
-    },
-    {
-      "city": "臺南市",
-      "condition": "晴時多雲",
-      "temp_range": "28° - 30°C",
-      "max_temp": 30
     },
     {
       "city": "臺中市",
-      "condition": "多雲",
-      "temp_range": "28° - 30°C",
-      "max_temp": 30
-    },
-    {
-      "city": "高雄市",
-      "condition": "晴時多雲",
-      "temp_range": "28° - 30°C",
+      "condition": "晴天",
+      "temp_range": "25° - 30°C",
       "max_temp": 30
     }
+  ],
+  "history": [
+    {"timestamp": "08:00", "reserve_rate": 14.5, "youbike_utilization": 25.2},
+    {"timestamp": "11:00", "reserve_rate": 12.1, "youbike_utilization": 42.8},
+    {"timestamp": "14:00", "reserve_rate": 7.8, "youbike_utilization": 38.5},
+    {"timestamp": "17:00", "reserve_rate": 10.2, "youbike_utilization": 58.4},
+    {"timestamp": "20:00", "reserve_rate": 11.5, "youbike_utilization": 45.1},
+    {"timestamp": "23:00", "reserve_rate": 14.8, "youbike_utilization": 18.3},
+    {"timestamp": "02:00", "reserve_rate": 16.2, "youbike_utilization": 5.2},
+    {"timestamp": "05:00", "reserve_rate": 15.8, "youbike_utilization": 12.4}
   ]
 }

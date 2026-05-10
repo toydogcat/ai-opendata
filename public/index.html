@@ -279,6 +279,18 @@
             </div>
           </div>
         </div>
+
+        <!-- History Trends Visualizer (Added for Time-Series persistence) -->
+        <div class="chart-box glass-card" style="width: 100%; margin: 25px 0;">
+          <div class="monitor-header" style="margin-bottom: 15px;">
+            <h3><i class="fa-solid fa-timeline text-accent-cyan"></i> 核心民生指標 歷史變化趨勢</h3>
+            <span class="live-badge" style="background: rgba(16,185,129,0.1); color: #10b981; border-color: rgba(16,185,129,0.3);"><i class="fa-solid fa-clock-rotate-left"></i> 定時自動累計</span>
+          </div>
+          <div style="height: 250px; width: 100%;">
+            <canvas id="historyChart"></canvas>
+          </div>
+        </div>
+
         <!-- Real-Time Weather Grid (New Row Added leveraging CWA API) -->
         <h3 style="margin: 30px 0 15px; font-size: 1.2rem;"><i class="fa-solid fa-cloud-sun text-accent-orange" style="margin-right: 8px;"></i> 全台都會即時天氣快報</h3>
         <div class="weather-forecast-grid" id="weather-forecast-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 40px;">
