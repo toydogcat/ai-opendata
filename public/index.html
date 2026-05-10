@@ -37,6 +37,7 @@
       </div>
       <div class="nav-links">
         <a href="#" class="active" id="nav-dashboard"><i class="fa-solid fa-chart-pie"></i> 控制艙</a>
+        <a href="#" id="nav-live-btn"><i class="fa-solid fa-satellite-dish"></i> 即時數據指標</a>
         <a href="#" id="nav-topics-btn"><i class="fa-solid fa-star"></i> 數據專題特展</a>
         <a href="#" id="nav-search-btn"><i class="fa-solid fa-magnifying-glass"></i> 資料檢索</a>
         <button id="chat-toggle-btn" class="chat-trigger-btn">
@@ -84,43 +85,7 @@
           </div>
         </div>
 
-        <!-- Live Public Utilities Monitors -->
-        <h2 class="section-subtitle" style="margin-top: 30px; margin-bottom: 15px;"><i class="fa-solid fa-tower-broadcast text-accent-cyan" style="margin-right: 8px;"></i> 即時民生指標監控艙</h2>
-        <div class="live-monitors-container">
-          <!-- Reservoirs Monitor Card -->
-          <div class="chart-box glass-card monitor-card">
-            <div class="monitor-header">
-              <h3><i class="fa-solid fa-water text-accent-cyan"></i> 全台主要水庫即時蓄水率</h3>
-              <span class="live-badge"><span class="pulse-dot"></span> 實時監測</span>
-            </div>
-            <div id="reservoir-list" class="reservoir-list">
-              <!-- Dynamically populated -->
-              <div class="loading-placeholder">載入中...</div>
-            </div>
-          </div>
-
-          <!-- Taipower Green Energy Monitor Card -->
-          <div class="chart-box glass-card monitor-card">
-            <div class="monitor-header">
-              <h3><i class="fa-solid fa-bolt text-accent"></i> 台灣即時用電發電比例</h3>
-              <span class="live-badge-orange"><span class="pulse-dot-orange"></span> 實時更新</span>
-            </div>
-            <div class="power-monitor-content">
-              <div class="power-chart-wrapper">
-                <canvas id="powerRatioChart"></canvas>
-              </div>
-              <div class="power-stats">
-                <div class="power-stat-item">
-                  <span class="power-label">備轉容量率 (備用電力)</span>
-                  <span id="power-reserve-rate" class="power-value text-accent-green">11.2%</span>
-                </div>
-                <div id="power-source-legend" class="power-source-legend">
-                  <!-- Dynamically populated legend -->
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <!-- Quick shortcut to Live Panel can be placed here if needed, currently removed to move to full Live Dashboard tab -->
 
         <!-- Charts Distributions Container -->
         <div class="charts-container">
@@ -211,6 +176,116 @@
         </div>
       </section>
       
+      <!-- Real-time Live Metrics Data Dashboard View -->
+      <section id="live-section" class="live-dashboard-section" style="display: none;">
+        <div class="hero-section glass-card" style="padding: 30px; margin-bottom: 20px;">
+          <h1 class="hero-title" style="font-size: 2.4rem; text-align: left;"><i class="fa-solid fa-satellite-dish text-accent"></i> 全台即時<br><span class="gradient-text">民生指標監測中心</span></h1>
+          <p class="hero-subtitle" style="text-align: left; max-width: 800px;">整合中央氣象署、環境部、水利署、台電及各縣市政府 Open API，透過雲端自動化流程定時抓取全台第一手水情、供電、空氣與交通動態。</p>
+        </div>
+
+        <!-- Real-Time Highlight Mini Cards -->
+        <div class="stats-grid" style="margin-bottom: 25px;">
+          <div class="stat-card glass-card mini-live-card">
+            <div class="stat-icon icon-green"><i class="fa-solid fa-bicycle"></i></div>
+            <div class="stat-info">
+              <span class="stat-value" id="live-yb-total" style="font-size: 1.6rem;">---</span>
+              <span class="stat-label">北市 YouBike 即時可借</span>
+            </div>
+          </div>
+          <div class="stat-card glass-card mini-live-card">
+            <div class="stat-icon icon-cyan"><i class="fa-solid fa-wind"></i></div>
+            <div class="stat-info">
+              <span class="stat-value" id="live-aqi-best" style="font-size: 1.6rem;">---</span>
+              <span class="stat-label">今日空氣最優區域</span>
+            </div>
+          </div>
+          <div class="stat-card glass-card mini-live-card">
+            <div class="stat-icon icon-blue"><i class="fa-solid fa-droplet"></i></div>
+            <div class="stat-info">
+              <span class="stat-value" id="live-h2o-best" style="font-size: 1.6rem;">---</span>
+              <span class="stat-label">水情最佳指標水庫</span>
+            </div>
+          </div>
+          <div class="stat-card glass-card mini-live-card">
+            <div class="stat-icon icon-orange" style="border-color: rgba(249, 115, 22, 0.3); color: #f97316;"><i class="fa-solid fa-temperature-arrow-up"></i></div>
+            <div class="stat-info">
+              <span class="stat-value" id="live-temp-hottest" style="font-size: 1.6rem;">---</span>
+              <span class="stat-label">全台都會今日最高溫</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="live-monitors-container big-grid">
+          <!-- Reservoirs Card (Same structure but bigger context) -->
+          <div class="chart-box glass-card monitor-card">
+            <div class="monitor-header">
+              <h3><i class="fa-solid fa-water text-accent-cyan"></i> 全台主要水庫即時蓄水率</h3>
+              <span class="live-badge"><span class="pulse-dot"></span> 實時連線</span>
+            </div>
+            <div id="reservoir-list" class="reservoir-list">
+              <div class="loading-placeholder">數據載入中...</div>
+            </div>
+          </div>
+
+          <!-- Power Card -->
+          <div class="chart-box glass-card monitor-card">
+            <div class="monitor-header">
+              <h3><i class="fa-solid fa-bolt text-accent"></i> 台灣即時用電發電比例</h3>
+              <span class="live-badge-orange"><span class="pulse-dot-orange"></span> 每3小時更新</span>
+            </div>
+            <div class="power-monitor-content">
+              <div class="power-chart-wrapper">
+                <canvas id="powerRatioChart"></canvas>
+              </div>
+              <div class="power-stats">
+                <div class="power-stat-item">
+                  <span class="power-label">備轉容量率 (備用電力)</span>
+                  <span id="power-reserve-rate" class="power-value text-accent-green">--%</span>
+                </div>
+                <div id="power-source-legend" class="power-source-legend"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="charts-container" style="margin-top: 25px; display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 20px;">
+          <!-- New Block 1: AQI Ranking List -->
+          <div class="chart-box glass-card" style="min-height: 350px;">
+            <div class="monitor-header" style="margin-bottom: 15px;">
+              <h3><i class="fa-solid fa-smog text-accent-cyan"></i> 今日空氣品質(AQI)排行</h3>
+              <span class="live-badge-green"><i class="fa-solid fa-leaf"></i> 即時優質榜</span>
+            </div>
+            <div class="aqi-rank-list" id="aqi-rank-container">
+              <!-- Dynamically Populated -->
+            </div>
+          </div>
+
+          <!-- New Block 2: YouBike Stats & Top Areas -->
+          <div class="chart-box glass-card" style="min-height: 350px;">
+            <div class="monitor-header" style="margin-bottom: 15px;">
+              <h3><i class="fa-solid fa-person-biking text-accent"></i> 北市 YouBike 租借繁忙度</h3>
+              <span class="live-badge-blue"><i class="fa-solid fa-chart-line"></i> 動態負載</span>
+            </div>
+            <div class="youbike-dashboard">
+              <div class="yb-main-stat" style="text-align: center; padding: 10px; background: rgba(255,255,255,0.03); border-radius: 10px; margin-bottom: 15px;">
+                <h4 style="font-size: 0.9rem; color: var(--text-muted);">系統總體週轉負荷</h4>
+                <div class="yb-rate" id="yb-util-rate" style="font-size: 2.5rem; font-weight: 800; background: var(--gradient-text); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">--%</div>
+                <span style="font-size: 0.8rem;">全系統共 <span id="yb-station-cnt">0</span> 個站點運行中</span>
+              </div>
+              <h4 style="font-size: 0.9rem; margin-bottom: 10px; color: var(--text-accent);">車輛資源分佈 TOP 5 (可借出數)</h4>
+              <div class="yb-area-chart" id="yb-area-list">
+                 <!-- Horiz bars -->
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Real-Time Weather Grid (New Row Added leveraging CWA API) -->
+        <h3 style="margin: 30px 0 15px; font-size: 1.2rem;"><i class="fa-solid fa-cloud-sun text-accent-orange" style="margin-right: 8px;"></i> 全台都會即時天氣快報</h3>
+        <div class="weather-forecast-grid" id="weather-forecast-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 40px;">
+           <!-- Dynamically rendered weather modules -->
+        </div>
+      </section>
+
       <!-- Special Topics Section -->
       <section id="topics-section" class="topics-section" style="display: none;">
         <div class="hero-section glass-card">

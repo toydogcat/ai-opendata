@@ -24,7 +24,7 @@
     {
       "name": "日月潭水庫",
       "location": "濁水溪",
-      "percentage": 73.3,
+      "percentage": 73.9,
       "status": "良好",
       "capacity": "12949.1"
     },
@@ -37,22 +37,22 @@
     }
   ],
   "power_generation": {
-    "update_time": "2026-05-10T15:10:00",
+    "update_time": "2026-05-10T15:50:00",
     "reserve_rate": 7.8,
     "sources": [
       {
         "name": "綠色能源 (風/光/水)",
-        "value": 28.1,
+        "value": 23.8,
         "color": "#10b981"
       },
       {
         "name": "乾淨燃氣",
-        "value": 43.1,
+        "value": 46.7,
         "color": "#06b6d4"
       },
       {
         "name": "常規燃煤",
-        "value": 28.8,
+        "value": 29.5,
         "color": "#f59e0b"
       },
       {
@@ -61,5 +61,110 @@
         "color": "#8b5cf6"
       }
     ]
-  }
+  },
+  "air_quality": {
+    "update_time": "16:03",
+    "top_regions": [
+      {
+        "name": "基隆市",
+        "value": 34.0,
+        "status": "優良"
+      },
+      {
+        "name": "臺北市",
+        "value": 36.3,
+        "status": "優良"
+      },
+      {
+        "name": "新竹縣",
+        "value": 37.5,
+        "status": "優良"
+      },
+      {
+        "name": "苗栗縣",
+        "value": 38.3,
+        "status": "優良"
+      },
+      {
+        "name": "臺東縣",
+        "value": 38.5,
+        "status": "優良"
+      },
+      {
+        "name": "新竹市",
+        "value": 39.0,
+        "status": "優良"
+      },
+      {
+        "name": "宜蘭縣",
+        "value": 39.5,
+        "status": "優良"
+      },
+      {
+        "name": "花蓮縣",
+        "value": 40.0,
+        "status": "優良"
+      }
+    ]
+  },
+  "youbike": {
+    "total_available_bikes": 19368,
+    "total_empty_slots": 29684,
+    "active_stations": 1758,
+    "top_areas": [
+      {
+        "name": "大安區",
+        "value": 3097
+      },
+      {
+        "name": "信義區",
+        "value": 2070
+      },
+      {
+        "name": "內湖區",
+        "value": 1971
+      },
+      {
+        "name": "中正區",
+        "value": 1779
+      },
+      {
+        "name": "中山區",
+        "value": 1733
+      }
+    ],
+    "utilization_rate": 39.5
+  },
+  "weather_forecast": [
+    {
+      "city": "新北市",
+      "condition": "多雲時陰短暫陣雨",
+      "temp_range": "25° - 28°C",
+      "max_temp": 28
+    },
+    {
+      "city": "臺北市",
+      "condition": "陰天",
+      "temp_range": "25° - 28°C",
+      "max_temp": 28
+    },
+    {
+      "city": "臺南市",
+      "condition": "晴時多雲",
+      "temp_range": "28° - 30°C",
+      "max_temp": 30
+    },
+    {
+      "city": "臺中市",
+      "condition": "多雲",
+      "temp_range": "28° - 30°C",
+      "max_temp": 30
+    },
+    {
+      "city": "高雄市",
+      "condition": "晴時多雲",
+      "temp_range": "28° - 30°C",
+      "max_temp": 30
+    }
+  ]
 }

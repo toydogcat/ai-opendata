@@ -31,11 +31,13 @@ const els = {
   
   // Section Navigation Buttons
   navDashboard: document.getElementById('nav-dashboard'),
+  navLiveBtn: document.getElementById('nav-live-btn'),
   navTopicsBtn: document.getElementById('nav-topics-btn'),
   
   // Main Sections
   dashboardSec: document.getElementById('dashboard-section'),
   searchSec: document.getElementById('search-section'),
+  liveSec: document.getElementById('live-section'),
   topicsSec: document.getElementById('topics-section'),
   
   // Topic Panels and Sub-buttons
@@ -99,6 +101,11 @@ function setupEventListeners() {
   els.navDashboard.addEventListener('click', (e) => {
     e.preventDefault();
     showSection('dashboard');
+  });
+
+  els.navLiveBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    showSection('live');
   });
 
   els.navTopicsBtn.addEventListener('click', (e) => {
@@ -168,17 +175,26 @@ function setupEventListeners() {
 function showSection(section) {
   state.activeSection = section;
   
+  // Reset all states first
+  els.navDashboard.classList.remove('active');
+  els.navLiveBtn.classList.remove('active');
+  els.navTopicsBtn.classList.remove('active');
+  els.dashboardSec.style.display = 'none';
+  els.searchSec.style.display = 'none';
+  els.liveSec.style.display = 'none';
+  els.topicsSec.style.display = 'none';
+  
   if (section === 'dashboard') {
     els.navDashboard.classList.add('active');
-    els.navTopicsBtn.classList.remove('active');
     els.dashboardSec.style.display = 'block';
     els.searchSec.style.display = 'block';
-    els.topicsSec.style.display = 'none';
+  } else if (section === 'live') {
+    els.navLiveBtn.classList.add('active');
+    els.liveSec.style.display = 'block';
+    // Scroll to top when viewing live dashboard
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   } else if (section === 'topics') {
-    els.navDashboard.classList.remove('active');
     els.navTopicsBtn.classList.add('active');
-    els.dashboardSec.style.display = 'none';
-    els.searchSec.style.display = 'none';
     els.topicsSec.style.display = 'block';
     // Trigger chart load for current topic
     showTopic(state.activeTopic);
@@ -315,17 +331,44 @@ async function loadLiveMonitors() {
     
     const data = await res.json();
 
-    // 1. Populate Reservoir List
+    // --- A. POPULATE TOP MINI SUMMARY CARDS ---
+    if (data.youbike && document.getElementById('live-yb-total')) {
+      document.getElementById('live-yb-total').textContent = data.youbike.total_available_bikes.toLocaleString();
+    }
+    if (data.air_quality && data.air_quality.top_regions && data.air_quality.top_regions.length > 0) {
+      const bestAir = data.air_quality.top_regions[0];
+      const bestAirEl = document.getElementById('live-aqi-best');
+      if (bestAirEl) {
+        bestAirEl.innerHTML = `${bestAir.name} <span style="font-size:0.8rem; opacity:0.8;">(AQI ${Math.round(bestAir.value)})</span>`;
+      }
+    }
+    if (data.reservoirs && data.reservoirs.length > 0) {
+      // Sort by percentage desc to find best
+      const sortedRes = [...data.reservoirs].sort((a, b) => b.percentage - a.percentage);
+      const h2oBestEl = document.getElementById('live-h2o-best');
+      if (h2oBestEl) {
+        h2oBestEl.innerHTML = `${sortedRes[0].name} <span style="font-size:0.8rem; opacity:0.8;">(${sortedRes[0].percentage}%)</span>`;
+      }
+    }
+    if (data.weather_forecast && data.weather_forecast.length > 0) {
+      const hottest = [...data.weather_forecast].sort((a, b) => b.max_temp - a.max_temp)[0];
+      const hottestEl = document.getElementById('live-temp-hottest');
+      if (hottestEl) {
+        hottestEl.innerHTML = `${hottest.city} <span style="font-size:0.8rem; opacity:0.8;">(${hottest.max_temp}°C)</span>`;
+      }
+    }
+
+    // --- B. RESERVOIR WATER LEVEL LIST ---
     const reservoirList = document.getElementById('reservoir-list');
-    if (reservoirList) {
+    if (reservoirList && data.reservoirs) {
       reservoirList.innerHTML = data.reservoirs.map(r => {
         let barColor = '#10b981'; // Good (>70%)
         let shadowColor = 'rgba(16, 185, 129, 0.4)';
         if (r.percentage < 40) {
-          barColor = '#ef4444'; // Eating / Critical (<40%)
+          barColor = '#ef4444'; // Critical
           shadowColor = 'rgba(239, 68, 68, 0.4)';
         } else if (r.percentage < 70) {
-          barColor = '#f59e0b'; // Normal / Middle (40% - 70%)
+          barColor = '#f59e0b'; // Normal
           shadowColor = 'rgba(245, 158, 11, 0.4)';
         }
 
@@ -343,50 +386,126 @@ async function loadLiveMonitors() {
       }).join('');
     }
 
-    // 2. Render Taipower Power Generation Ratio Doughnut Chart
-    const powerCtx = document.getElementById('powerRatioChart').getContext('2d');
-    const reserveRateEl = document.getElementById('power-reserve-rate');
-    if (reserveRateEl) {
-      reserveRateEl.textContent = `${data.power_generation.reserve_rate}%`;
-      if (data.power_generation.reserve_rate < 10) {
-        reserveRateEl.className = 'power-value text-accent-orange';
-      } else {
-        reserveRateEl.className = 'power-value text-accent-green';
+    // --- C. TAIPOWER POWER RATIO CHART ---
+    const powerCtx = document.getElementById('powerRatioChart');
+    if (powerCtx && data.power_generation) {
+      const ctx = powerCtx.getContext('2d');
+      const reserveRateEl = document.getElementById('power-reserve-rate');
+      if (reserveRateEl) {
+        reserveRateEl.textContent = `${data.power_generation.reserve_rate}%`;
+        if (data.power_generation.reserve_rate < 10) {
+          reserveRateEl.className = 'power-value text-accent-orange';
+        } else {
+          reserveRateEl.className = 'power-value text-accent-green';
+        }
+      }
+
+      // Destroy old chart if exists
+      if (state.charts.powerRatio) state.charts.powerRatio.destroy();
+
+      state.charts.powerRatio = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: data.power_generation.sources.map(s => s.name),
+          datasets: [{
+            data: data.power_generation.sources.map(s => s.value),
+            backgroundColor: data.power_generation.sources.map(s => s.color),
+            borderWidth: 0,
+            hoverOffset: 8
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false }
+          },
+          cutout: '70%'
+        }
+      });
+
+      // Fill Legend
+      const legendContainer = document.getElementById('power-source-legend');
+      if (legendContainer) {
+        legendContainer.innerHTML = data.power_generation.sources.map(s => `
+          <div class="legend-item">
+            <div class="legend-label-group">
+              <span class="legend-dot" style="background-color: ${s.color}"></span>
+              <span>${s.name.split(' ')[0]}</span>
+            </div>
+            <span class="legend-val">${s.value}%</span>
+          </div>
+        `).join('');
       }
     }
 
-    state.charts.powerRatio = new Chart(powerCtx, {
-      type: 'doughnut',
-      data: {
-        labels: data.power_generation.sources.map(s => s.name),
-        datasets: [{
-          data: data.power_generation.sources.map(s => s.value),
-          backgroundColor: data.power_generation.sources.map(s => s.color),
-          borderWidth: 0,
-          hoverOffset: 8
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false }
-        }
-      }
-    });
-
-    // Populate Legend
-    const legendContainer = document.getElementById('power-source-legend');
-    if (legendContainer) {
-      legendContainer.innerHTML = data.power_generation.sources.map(s => `
-        <div class="legend-item">
-          <div class="legend-label-group">
-            <span class="legend-dot" style="background-color: ${s.color}"></span>
-            <span>${s.name.split(' ')[0]}</span>
+    // --- D. AQI RANKINGS DISPLAY ---
+    const aqiContainer = document.getElementById('aqi-rank-container');
+    if (aqiContainer && data.air_quality && data.air_quality.top_regions) {
+      aqiContainer.innerHTML = data.air_quality.top_regions.map((region, index) => {
+        const isGood = region.value <= 50;
+        return `
+          <div class="aqi-rank-item">
+            <div class="aqi-rank-left">
+              <span class="aqi-rank-num">#${index + 1}</span>
+              <span class="aqi-city-name">${region.name}</span>
+            </div>
+            <div class="aqi-rank-right">
+              <span class="${isGood ? 'aqi-tag-good' : 'aqi-tag-fair'}">${region.status}</span>
+              <span class="aqi-rank-val" style="color: ${isGood ? '#10b981' : '#fbbf24'}">${Math.round(region.value)}</span>
+            </div>
           </div>
-          <span class="legend-val">${s.value}%</span>
-        </div>
-      `).join('');
+        `;
+      }).join('');
+    }
+
+    // --- E. YOUBIKE DASHBOARD ---
+    if (data.youbike) {
+      const utilRateEl = document.getElementById('yb-util-rate');
+      const stnCountEl = document.getElementById('yb-station-cnt');
+      const areaListEl = document.getElementById('yb-area-list');
+      
+      if (utilRateEl) utilRateEl.textContent = `${data.youbike.utilization_rate}%`;
+      if (stnCountEl) stnCountEl.textContent = data.youbike.active_stations.toLocaleString();
+      
+      if (areaListEl && data.youbike.top_areas) {
+        const maxVal = Math.max(...data.youbike.top_areas.map(a => a.value)) || 100;
+        areaListEl.innerHTML = data.youbike.top_areas.map(area => {
+          const pct = (area.value / maxVal) * 100;
+          return `
+            <div class="yb-bar-row">
+              <div class="yb-bar-info">
+                <span class="yb-bar-label">${area.name}</span>
+                <span class="yb-bar-val">${area.value.toLocaleString()} 輛</span>
+              </div>
+              <div class="yb-bar-outer">
+                <div class="yb-bar-inner" style="width: ${pct}%"></div>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+    }
+
+    // --- F. REAL-TIME METROPOLITAN WEATHER GRID ---
+    const weatherGrid = document.getElementById('weather-forecast-container');
+    if (weatherGrid && data.weather_forecast) {
+      weatherGrid.innerHTML = data.weather_forecast.map(w => {
+        let iconClass = 'fa-cloud-sun'; // Default
+        if (w.condition.includes('雨')) iconClass = 'fa-cloud-showers-heavy';
+        else if (w.condition.includes('晴')) iconClass = 'fa-sun';
+        else if (w.condition.includes('雷')) iconClass = 'fa-cloud-bolt';
+        else if (w.condition.includes('陰') || w.condition.includes('多雲')) iconClass = 'fa-cloud';
+        
+        return `
+          <div class="weather-card">
+            <div class="weather-city">${w.city}</div>
+            <div class="weather-icon-large"><i class="fa-solid ${iconClass}"></i></div>
+            <div class="weather-cond">${w.condition}</div>
+            <div class="weather-temp">${w.temp_range}</div>
+          </div>
+        `;
+      }).join('');
     }
 
   } catch (err) {

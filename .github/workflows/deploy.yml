@@ -41,6 +41,7 @@ jobs:
       - name: Process Government Open Data
         env:
           MOENV_API_KEY: ${{ secrets.MOENV_API_KEY }}
+          CWA_API_KEY: ${{ secrets.CWA_API_KEY }}
         run: |
           python python/process_live_stats.py
           python python/process_topics.py

@@ -141,11 +141,152 @@ def main():
                 {"name": "低碳核能", "value": 8.0, "color": "#8b5cf6"}
             ]
         }
+    # 3. Fetch MOENV Real-time AQI using Environment API Key
+    air_quality = {}
+    try:
+        print("Fetching MOENV Air Quality for dashboard...")
+        aqi_key = os.environ.get('MOENV_API_KEY')
+        aqi_r = requests.get(f"https://data.moenv.gov.tw/api/v2/aqx_p_432?format=json&api_key={aqi_key}", timeout=10)
+        aqi_r.raise_for_status()
+        aqi_records = aqi_r.json()
+        
+        aqi_county_metrics = {}
+        for item in aqi_records:
+            c = item.get("county", "")
+            if not c: continue
+            try:
+                a = float(item.get("aqi")) if item.get("aqi") else None
+                if a is not None:
+                    if c not in aqi_county_metrics:
+                        aqi_county_metrics[c] = {"sum": 0.0, "cnt": 0}
+                    aqi_county_metrics[c]["sum"] += a
+                    aqi_county_metrics[c]["cnt"] += 1
+            except: pass
+            
+        county_averages = []
+        for name, vals in aqi_county_metrics.items():
+            if vals["cnt"] > 0:
+                avg = round(vals["sum"] / vals["cnt"], 1)
+                status = "優良" if avg <= 50 else ("普通" if avg <= 100 else "不佳")
+                county_averages.append({"name": name, "value": avg, "status": status})
+        
+        # Sort by value Ascending (Best Air Quality first)
+        county_averages.sort(key=lambda x: x["value"])
+        air_quality = {
+            "update_time": datetime.now().strftime("%H:%M"),
+            "top_regions": county_averages[:8]
+        }
+        print(f"Fetched air quality for {len(county_averages)} counties.")
+    except Exception as e:
+        print(f"Failed to fetch Air Quality: {e}")
+        air_quality = {
+            "update_time": "--",
+            "top_regions": [{"name": "花蓮縣", "value": 22, "status": "優良"}, {"name": "臺東縣", "value": 24, "status": "優良"}]
+        }
+
+    # 4. Fetch Taipei YouBike2.0 Aggregate Stats
+    youbike_stats = {}
+    try:
+        print("Fetching YouBike 2.0 stats...")
+        yb_r = requests.get("https://tcgbusfs.blob.core.windows.net/dotapp/youbike/v2/youbike_immediate.json", timeout=10)
+        yb_r.raise_for_status()
+        yb_records = yb_r.json()
+        
+        total_bikes = 0
+        total_spaces = 0
+        station_count = 0
+        area_stats = {} # For breakdown
+        
+        for item in yb_records:
+            try:
+                rent = int(item.get("available_rent_bikes", 0))
+                ret = int(item.get("available_return_bikes", 0))
+                area = item.get("sarea", "未知")
+                
+                total_bikes += rent
+                total_spaces += ret
+                station_count += 1
+                
+                if area not in area_stats:
+                    area_stats[area] = {"bikes": 0, "stations": 0}
+                area_stats[area]["bikes"] += rent
+                area_stats[area]["stations"] += 1
+            except: pass
+            
+        # Get top 5 active areas
+        sorted_areas = sorted([{"name": k, "value": v["bikes"]} for k, v in area_stats.items()], key=lambda x: x["value"], reverse=True)
+        
+        youbike_stats = {
+            "total_available_bikes": total_bikes,
+            "total_empty_slots": total_spaces,
+            "active_stations": station_count,
+            "top_areas": sorted_areas[:5],
+            "utilization_rate": round((total_bikes / (total_bikes + total_spaces)) * 100, 1) if (total_bikes+total_spaces) > 0 else 45.0
+        }
+        print(f"Fetched YouBike stats for {station_count} stations.")
+    except Exception as e:
+        print(f"Failed to fetch YouBike stats: {e}")
+        youbike_stats = {
+            "total_available_bikes": 4500,
+            "total_empty_slots": 12000,
+            "active_stations": 1350,
+            "utilization_rate": 38.5,
+            "top_areas": [{"name": "大安區", "value": 850}, {"name": "信義區", "value": 620}]
+        }
+    # 5. Fetch CWA Real-time Weather Forecast using new API Key
+    weather_forecast = []
+    try:
+        print("Fetching CWA Weather Forecast...")
+        cwa_key = os.environ.get('CWA_API_KEY')
+        cwa_url = f"https://opendata.cwa.gov.tw/api/v1/rest/datastore/F-C0032-001?Authorization={cwa_key}&format=JSON"
+        cwa_r = requests.get(cwa_url, timeout=10)
+        cwa_r.raise_for_status()
+        cwa_data = cwa_r.json()
+        
+        major_cities = ["臺北市", "新北市", "臺中市", "臺南市", "高雄市"]
+        locations = cwa_data.get("records", {}).get("location", [])
+        
+        for loc in locations:
+            loc_name = loc.get("locationName", "")
+            if loc_name in major_cities:
+                elements = loc.get("weatherElement", [])
+                
+                # Extract data from element names
+                wx = ""
+                min_t = ""
+                max_t = ""
+                
+                for el in elements:
+                    el_name = el.get("elementName", "")
+                    # Take time[0] which is the most current/upcoming 12hr window
+                    val = el.get("time", [{}])[0].get("parameter", {}).get("parameterName", "")
+                    
+                    if el_name == "Wx": wx = val
+                    elif el_name == "MinT": min_t = val
+                    elif el_name == "MaxT": max_t = val
+                
+                weather_forecast.append({
+                    "city": loc_name,
+                    "condition": wx,
+                    "temp_range": f"{min_t}° - {max_t}°C",
+                    "max_temp": int(max_t) if max_t.isdigit() else 0
+                })
+        
+        print(f"Fetched dynamic weather for {len(weather_forecast)} cities.")
+    except Exception as e:
+        print(f"Failed to fetch CWA Weather: {e}")
+        weather_forecast = [
+            {"city": "臺北市", "condition": "多雲", "temp_range": "24° - 28°C", "max_temp": 28},
+            {"city": "臺中市", "condition": "晴天", "temp_range": "25° - 30°C", "max_temp": 30}
+        ]
 
     # 3. Combine and write to file
     final_output = {
         "reservoirs": reservoirs_data,
-        "power_generation": power_generation
+        "power_generation": power_generation,
+        "air_quality": air_quality,
+        "youbike": youbike_stats,
+        "weather_forecast": weather_forecast
     }
     
     # Dynamically locate output dir relative to this script file
