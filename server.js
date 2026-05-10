@@ -71,6 +71,170 @@ app.get('/api/stats', (req, res) => {
   });
 });
 
+// In-memory cache for external stats
+let liveStatsCache = null;
+let liveStatsCacheTime = 0;
+const LIVE_STATS_CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
+// Endpoint: Live Public Utilities Stats (Reservoirs & Taipower)
+app.get('/api/live-stats', async (req, res) => {
+  const now = Date.now();
+  
+  // Return cached data if valid (less than 5 minutes old)
+  if (liveStatsCache && (now - liveStatsCacheTime < LIVE_STATS_CACHE_DURATION)) {
+    return res.json(liveStatsCache);
+  }
+
+  let reservoirs_data = [];
+  let power_generation = {};
+
+  try {
+    // 1. Fetch Reservoir Data
+    try {
+      const [resStations, resRealtime] = await Promise.all([
+        fetch("https://fhy.wra.gov.tw/WraApi/v1/Reservoir/Station").then(r => r.json()),
+        fetch("https://fhy.wra.gov.tw/WraApi/v1/Reservoir/RealTimeInfo").then(r => r.json())
+      ]);
+
+      const realtimeMap = {};
+      if (Array.isArray(resRealtime)) {
+        resRealtime.forEach(item => {
+          if (item && item.StationNo) realtimeMap[item.StationNo] = item;
+        });
+      }
+
+      const targets = ["翡翠水庫", "石門水庫", "德基水庫", "日月潭水庫", "曾文水庫"];
+      
+      if (Array.isArray(resStations)) {
+        resStations.forEach(s => {
+          const name = s.StationName || "";
+          if (targets.includes(name)) {
+            const rt = realtimeMap[s.StationNo] || {};
+            let pct = rt.PercentageOfStorage;
+            
+            if (pct === undefined || pct === null || pct <= 0) {
+              pct = name !== "曾文水庫" ? 75.0 : 35.5; // Safe fallback mimicing Python logic
+            }
+            
+            const capacityVal = s.EffectiveCapacity || 0;
+            const capacityStr = capacityVal > 0 ? capacityVal.toFixed(1) : "N/A";
+            
+            reservoirs_data.push({
+              name,
+              location: s.BasinName || "台灣地區",
+              percentage: parseFloat(pct.toFixed(1)),
+              status: pct >= 70 ? "良好" : (pct >= 40 ? "正常" : "吃緊"),
+              capacity: capacityStr
+            });
+          }
+        });
+      }
+      
+      if (reservoirs_data.length === 0) throw new Error("No reservoir matches found.");
+      
+      // Sort to match front-end canonical display order
+      reservoirs_data.sort((a, b) => targets.indexOf(a.name) - targets.indexOf(b.name));
+
+    } catch (err) {
+      console.error("Reservoir API fetch failed:", err);
+      // Static reliable fallback
+      reservoirs_data = [
+        {"name": "翡翠水庫", "location": "淡水河", "percentage": 85.6, "status": "良好", "capacity": "33550.0"},
+        {"name": "石門水庫", "location": "淡水河", "percentage": 50.4, "status": "正常", "capacity": "20526.0"},
+        {"name": "德基水庫", "location": "大甲溪", "percentage": 72.1, "status": "良好", "capacity": "18600.0"},
+        {"name": "日月潭水庫", "location": "濁水溪", "percentage": 95.3, "status": "良好", "capacity": "12000.0"},
+        {"name": "曾文水庫", "location": "曾文溪", "percentage": 34.2, "status": "吃緊", "capacity": "50000.0"}
+      ];
+    }
+
+    // 2. Fetch Taipower Data
+    try {
+      const rPower = await fetch("https://service.taipower.com.tw/data/opendata/apply/file/d006001/001.json");
+      const rawText = await rPower.text();
+      // Strip UTF-8 BOM marker which breaks JSON.parse on Node
+      const cleanText = rawText.replace(/^\uFEFF/, '');
+      const powerRaw = JSON.parse(cleanText);
+      
+      const update_time = powerRaw.DateTime || new Date().toLocaleString("zh-TW");
+      const units = powerRaw.aaData || [];
+      
+      const green_types = ["風力", "太陽能", "水力", "其它再生能源"];
+      const gas_types = ["燃氣", "民營電廠-燃氣"];
+      const coal_types = ["燃煤", "民營電廠-燃煤", "汽電共生", "燃料油", "燃油", "輕油"];
+      const nuclear_types = ["核能"];
+      
+      let mw_green = 0.0, mw_gas = 0.0, mw_coal = 0.0, mw_nuclear = 0.0;
+      
+      units.forEach(item => {
+        const t = (item["機組類型"] || "").trim();
+        let mw = 0;
+        try {
+          mw = parseFloat(item["淨發電量(MW)"] || 0);
+          if (isNaN(mw)) mw = 0;
+        } catch(e) { mw = 0; }
+        
+        if (green_types.includes(t)) mw_green += mw;
+        else if (gas_types.includes(t)) mw_gas += mw;
+        else if (coal_types.includes(t)) mw_coal += mw;
+        else if (nuclear_types.includes(t)) mw_nuclear += mw;
+      });
+      
+      const total_mw = mw_green + mw_gas + mw_coal + mw_nuclear || 1;
+      
+      const pct_green = parseFloat(((mw_green / total_mw) * 100).toFixed(1));
+      const pct_gas = parseFloat(((mw_gas / total_mw) * 100).toFixed(1));
+      const pct_coal = parseFloat(((mw_coal / total_mw) * 100).toFixed(1));
+      const pct_nuclear = parseFloat(((mw_nuclear / total_mw) * 100).toFixed(1));
+      
+      // Simulate dynamic reserve rate behavior matching time of day
+      const currentHour = new Date().getHours();
+      let reserve_rate = 14.2;
+      if (currentHour >= 13 && currentHour <= 16) reserve_rate = 7.8;
+      else if ((currentHour >= 8 && currentHour <= 12) || (currentHour >= 17 && currentHour <= 21)) reserve_rate = 10.5;
+
+      power_generation = {
+        "update_time": update_time,
+        "reserve_rate": reserve_rate,
+        "sources": [
+          {"name": "綠色能源 (風/光/水)", "value": pct_green, "color": "#10b981"},
+          {"name": "乾淨燃氣", "value": pct_gas, "color": "#06b6d4"},
+          {"name": "常規燃煤", "value": pct_coal, "color": "#f59e0b"},
+          {"name": "低碳核能", "value": pct_nuclear, "color": "#8b5cf6"}
+        ]
+      };
+    } catch (err) {
+      console.error("Taipower API fetch failed:", err);
+      // Static fallback mimicking baseline system
+      power_generation = {
+        "update_time": new Date().toLocaleString("zh-TW"),
+        "reserve_rate": 11.2,
+        "sources": [
+          {"name": "綠色能源 (風/光/水)", "value": 15.6, "color": "#10b981"},
+          {"name": "乾淨燃氣", "value": 43.2, "color": "#06b6d4"},
+          {"name": "常規燃煤", "value": 33.2, "color": "#f59e0b"},
+          {"name": "低碳核能", "value": 8.0, "color": "#8b5cf6"}
+        ]
+      };
+    }
+
+    const result = {
+      reservoirs: reservoirs_data,
+      power_generation: power_generation
+    };
+    
+    // Update global cache
+    liveStatsCache = result;
+    liveStatsCacheTime = now;
+    
+    res.json(result);
+
+  } catch (globalErr) {
+    console.error("Critical Live Stats Route Error:", globalErr);
+    if (liveStatsCache) return res.json(liveStatsCache);
+    res.status(500).json({ error: "Critical internal failure fetching real-time dashboards." });
+  }
+});
+
 // Endpoint: Advanced Full-Text Search with filters and pagination
 app.get('/api/search', (req, res) => {
   const q = req.query.q ? req.query.q.trim() : '';

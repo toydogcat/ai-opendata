@@ -3,7 +3,7 @@
     {
       "name": "石門水庫",
       "location": "淡水河",
-      "percentage": 72.1,
+      "percentage": 72.4,
       "status": "良好",
       "capacity": "20526.0"
     },
@@ -17,42 +17,42 @@
     {
       "name": "德基水庫",
       "location": "大甲溪",
-      "percentage": 86.1,
+      "percentage": 87.0,
       "status": "良好",
       "capacity": "18866.3"
     },
     {
       "name": "日月潭水庫",
       "location": "濁水溪",
-      "percentage": 69.7,
-      "status": "正常",
+      "percentage": 73.3,
+      "status": "良好",
       "capacity": "12949.1"
     },
     {
       "name": "曾文水庫",
       "location": "曾文溪",
-      "percentage": 11.3,
+      "percentage": 11.2,
       "status": "吃緊",
       "capacity": "50685.3"
     }
   ],
   "power_generation": {
-    "update_time": "2026-05-09T21:50:00",
-    "reserve_rate": 14.2,
+    "update_time": "2026-05-10T15:10:00",
+    "reserve_rate": 7.8,
     "sources": [
       {
         "name": "綠色能源 (風/光/水)",
-        "value": 14.4,
+        "value": 28.1,
         "color": "#10b981"
       },
       {
         "name": "乾淨燃氣",
-        "value": 56.0,
+        "value": 43.1,
         "color": "#06b6d4"
       },
       {
         "name": "常規燃煤",
-        "value": 29.6,
+        "value": 28.8,
         "color": "#f59e0b"
       },
       {

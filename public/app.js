@@ -305,7 +305,14 @@ async function loadStats() {
 // Load and render Live Public Utilities Monitors (Reservoirs & Taipower)
 async function loadLiveMonitors() {
   try {
-    const res = await fetch('data/live_stats.json');
+    let res = await fetch('/api/live-stats');
+    
+    // If API gives error, try static fallback
+    if (!res.ok) {
+      console.warn('API live-stats returned error, attempting static file fallback');
+      res = await fetch('data/live_stats.json');
+    }
+    
     const data = await res.json();
 
     // 1. Populate Reservoir List
