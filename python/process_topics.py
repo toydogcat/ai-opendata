@@ -5,11 +5,65 @@ import os
 DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'public', 'data')
 os.makedirs(DATA_DIR, exist_ok=True)
 
-print("Processing Topic 1: 臺灣環境與空氣品質 (Environment & Air Quality)...")
+import requests
+
+# Fetch Real-time Environment Data from MOENV API using secure Environment Variable
+print("Fetching Real-Time Air Quality Data from MOENV API...")
+API_KEY = os.environ.get('MOENV_API_KEY')
+if not API_KEY:
+    print("Warning: MOENV_API_KEY not found in environment. API call may fail.")
+    API_KEY = "YOUR_DEFAULT_OR_ENV_KEY" # Fallback for local execution without key
+url = f"https://data.moenv.gov.tw/api/v2/aqx_p_432?format=json&api_key={API_KEY}"
+
+cities = ["基隆市", "臺北市", "新北市", "桃園市", "新竹市", "苗栗縣", "臺中市", "彰化縣", "南投縣", "雲林縣", "嘉義市", "臺南市", "高雄市", "屏東縣", "宜蘭縣", "花蓮縣", "臺東縣"]
+aqi_averages = [38] * len(cities)
+pm25_averages = [9.5] * len(cities)
+
+try:
+    r = requests.get(url, timeout=10)
+    r.raise_for_status()
+    records = r.json()
+    
+    # Aggregate sum and counts per county
+    county_metrics = {}
+    for item in records:
+        c = item.get("county", "")
+        if not c: continue
+        
+        try:
+            a = float(item.get("aqi")) if item.get("aqi") else None
+            p = float(item.get("pm2.5")) if item.get("pm2.5") else None
+            
+            if c not in county_metrics:
+                county_metrics[c] = {"aqi_sum": 0.0, "aqi_cnt": 0, "pm25_sum": 0.0, "pm25_cnt": 0}
+            
+            if a is not None:
+                county_metrics[c]["aqi_sum"] += a
+                county_metrics[c]["aqi_cnt"] += 1
+            if p is not None:
+                county_metrics[c]["pm25_sum"] += p
+                county_metrics[c]["pm25_cnt"] += 1
+        except:
+            pass
+            
+    # Map back to designated city sort order
+    for idx, city_name in enumerate(cities):
+        if city_name in county_metrics:
+            metrics = county_metrics[city_name]
+            if metrics["aqi_cnt"] > 0:
+                aqi_averages[idx] = round(metrics["aqi_sum"] / metrics["aqi_cnt"], 1)
+            if metrics["pm25_cnt"] > 0:
+                pm25_averages[idx] = round(metrics["pm25_sum"] / metrics["pm25_cnt"], 1)
+                
+    print("Successfully populated AQI & PM2.5 from live government feeds!")
+except Exception as e:
+    print(f"Failed to fetch MOENV data: {e}. Using sensible defaults.")
+    # Keep initialization arrays as they are
+
 env_data = {
-  "cities": ["基隆市", "臺北市", "新北市", "桃園市", "新竹市", "苗栗縣", "臺中市", "彰化縣", "南投縣", "雲林縣", "嘉義市", "臺南市", "高雄市", "屏東縣", "宜蘭縣", "花蓮縣", "臺東縣"],
-  "aqi_averages": [38, 42, 45, 48, 44, 46, 52, 55, 58, 62, 59, 64, 68, 54, 32, 28, 25],
-  "pm25_averages": [9.5, 11.2, 12.0, 13.5, 12.2, 12.8, 15.4, 16.2, 18.0, 19.5, 18.2, 20.1, 22.4, 15.6, 7.2, 6.0, 5.2],
+  "cities": cities,
+  "aqi_averages": aqi_averages,
+  "pm25_averages": pm25_averages,
   "seasonal_weather": {
     "labels": ["一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一月", "十二月"],
     "northern_temp": [15.2, 15.6, 18.0, 21.5, 24.8, 27.5, 29.2, 28.8, 27.2, 24.1, 20.6, 16.8],

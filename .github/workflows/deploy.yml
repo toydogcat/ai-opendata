@@ -39,6 +39,8 @@ jobs:
           pip install requests
           
       - name: Process Government Open Data
+        env:
+          MOENV_API_KEY: ${{ secrets.MOENV_API_KEY }}
         run: |
           python python/process_live_stats.py
           python python/process_topics.py
